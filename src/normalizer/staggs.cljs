@@ -1,9 +1,7 @@
 (ns normalizer.staggs
-  (:require [cljs.nodejs :as nodejs]
-            [clojure.string :as string]
-            [bible.core]))
-
-(def fs (nodejs/require "fs"))
+  (:require [clojure.string :as string]
+            [bible.core]
+            [normalizer.filesystem :refer [read-text]]))
 
 (def bookNameMap {
   "Ge"   :Genesis
@@ -119,7 +117,7 @@
     (map transformBook)
     (vec)))
 
-(defn parser [path]
+(defn parser [fs path]
   (->>
-    (.readFileSync fs path (js-obj "encoding" "utf8"))
+    (read-text fs path)
     (transformBible)))
