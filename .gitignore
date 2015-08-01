@@ -1,4 +1,13 @@
-/libs/
+/lib/
+/classes/
 /out/
-/*.js
+/release/
+/target/
 /node_modules/
+*.jar
+.lein-deps-sum
+.lein-repl-history
+.lein-plugins/
+
+.nrepl-port
+/.cljs_node_repl/
