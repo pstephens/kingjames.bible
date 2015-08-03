@@ -1,2 +1,2 @@
 @echo off
-lein trampoline run -m clojure.main scripts\repl.clj
+lein trampoline run -m clojure.main scripts\clj\repl.clj

@@ -9,7 +9,7 @@
 
 (deftype NodeFs []
   FileSystem
-  (read-text [fs path] 
+  (read-text [fs path]
     (.readFileSync node-fs path (js-obj "encoding" "utf8")))
-  (write-text [fs path text] 
+  (write-text [fs path text]
     (.writeFileSync node-fs path text (js-obj "encoding" "utf8"))))
