@@ -8,13 +8,13 @@
    :optimizations :simple
    :verbose true
    :output-to (str "out/" name ".js")
-   :output-dir (str "out/" name)
+   :output-dir (str "out/_" name)
    :source-map (str "out/" name ".js.map")})
 
 (let [start (System/nanoTime)]
 
   (b/build (b/inputs "src/common" "src/normalizer") (makeNodeOpt "normalizer"))
-  (b/build (b/inputs "src/common" "test") (makeNodeOpt "nodetests"))
+  (b/build (b/inputs "src/common" "src/test") (makeNodeOpt "nodetests"))
 
   (println "... done. Elapsed" (/ (- (System/nanoTime) start) 1e9) "seconds")
   (System/exit 0))
