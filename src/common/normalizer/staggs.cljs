@@ -97,7 +97,7 @@
       v1 (first verses)
       bookData (bible.core/bookData (v1 :bookId))]
     {
-      "name" (bookData :name)
+      :id (bookData :id)
       "num" (inc (bookData :index))
       "chapters"
         (->>

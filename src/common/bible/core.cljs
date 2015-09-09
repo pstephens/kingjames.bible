@@ -81,3 +81,12 @@
                 (make :Jude 64)
                 (make :Revelation 65))
             (reduce add {}))))
+
+(defn get-book-meta
+  ([id] (get bookData id))
+  ([id prop] (prop (get bookData id))))
+
+(defn get-book [m id]
+  (->>
+    (get-book-meta id :index)
+    (get m)))
