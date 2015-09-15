@@ -1,15 +1,15 @@
-(ns normalizer.core
+(ns common.normalizer.core
     (:require
       [cognitect.transit :as t]
-      [normalizer.filesystem :refer [NodeFs write-text]]
-      [normalizer.staggs]
-      [normalizer.transit]))
+      [common.normalizer.filesystem :refer [NodeFs write-text]]
+      [common.normalizer.staggs]
+      [common.normalizer.transit]))
 
 (def node-fs (NodeFs.))
 
 (def parsers {
-  :staggs normalizer.staggs/parser
-  :transit normalizer.transit/parser})
+  :staggs common.normalizer.staggs/parser
+  :transit common.normalizer.transit/parser})
 
 (defn write-bible [path bible]
   (let [w (t/writer :json-verbose)

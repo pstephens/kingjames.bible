@@ -1,7 +1,7 @@
-(ns normalizer.staggs
+(ns common.normalizer.staggs
   (:require [clojure.string :as string]
-            [bible.core]
-            [normalizer.filesystem :refer [read-text]]))
+            [common.bible.core]
+            [common.normalizer.filesystem :refer [read-text]]))
 
 (def bookNameMap {
   "Ge"   :Genesis
@@ -95,7 +95,7 @@
 (defn transformBook [verses]
   (let [
       v1 (first verses)
-      bookData (bible.core/bookData (v1 :bookId))]
+      bookData (common.bible.core/bookData (v1 :bookId))]
     {
       :id (bookData :id)
       "num" (inc (bookData :index))

@@ -1,4 +1,4 @@
-(ns bible.core
+(ns common.bible.core
     (:require [clojure.string :as string]))
 
 (defn makeBookData [])

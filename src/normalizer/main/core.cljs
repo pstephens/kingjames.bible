@@ -1,7 +1,7 @@
-(ns main.core
+(ns normalizer.main.core
   (:require
     [cljs.nodejs :as nodejs]
-    [normalizer.core :refer [run-parser]]))
+    [common.normalizer.core :refer [run-parser]]))
 
 (nodejs/enable-util-print!)
 

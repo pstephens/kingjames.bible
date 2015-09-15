@@ -1,4 +1,4 @@
-(ns normalizer.filesystem
+(ns common.normalizer.filesystem
   (:require [cljs.nodejs :as nodejs]))
 
 (def node-fs (nodejs/require "fs"))

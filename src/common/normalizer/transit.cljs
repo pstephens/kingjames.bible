@@ -1,6 +1,6 @@
-(ns normalizer.transit
+(ns common.normalizer.transit
   (:require [cognitect.transit :as t]
-            [normalizer.filesystem :refer [read-text]]))
+            [common.normalizer.filesystem :refer [read-text]]))
 
 (defn parser [fs path]
   (let [r (t/reader :json)]
