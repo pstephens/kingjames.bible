@@ -11,6 +11,7 @@
       (is (= :Mark (b/get-book-meta :Mark :id)))
       (is (= nil (b/get-book-meta :NotABook :name))))
     (testing "Books"
-      (is (= 66 (count (keys m))) "count")
+      (is (= 66 (count (keys m))) "book count")
       (is (= :Genesis (:id (b/get-book m :Genesis))) "get by keyword")
-      )))
+      (is (= :Thessalonians1 (:id (b/get-book m :Thessalonians1))) "get by keyword 2")
+      (is (= 1 (:num (b/get-book m :Genesis))) "book num"))))

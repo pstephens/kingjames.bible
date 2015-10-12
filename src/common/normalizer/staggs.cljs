@@ -98,7 +98,7 @@
       bookData (common.bible.core/bookData (v1 :bookId))]
     {
       :id (bookData :id)
-      "num" (inc (bookData :index))
+      :num (inc (bookData :index))
       "chapters"
         (->>
           verses

@@ -21,11 +21,13 @@
   :source-paths ["src"]
 
   :cljsbuild {
-    :builds [{:id "main"
-              :source-paths ["src"]
-              :compiler {
-                :output-to "out/nodetests.js"
-                :output-dir "out"
-                :target :nodejs
-                :optimizations :none
-                :source-map true}}]})
+    :builds [
+      {:id "test"
+       :source-paths ["src"]
+       :notify-command ["node" "nodetest.js"]
+       :compiler {
+        :output-to "out/nodetests.js"
+        :output-dir "out"
+        :target :nodejs
+        :optimizations :none
+        :source-map true}}]})
