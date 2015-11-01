@@ -82,10 +82,10 @@
 (defn transformChapter [verses]
   (let [v1 (first verses)]
     {
-      "num" (v1 :chapterNum)
+      :num (v1 :chapterNum)
       "subtitle" false
       "postscript" false
-      "verses"
+      :verses
         (->>
           verses
           (map :content)
@@ -95,11 +95,11 @@
 (defn transformBook [verses]
   (let [
       v1 (first verses)
-      bookData (common.bible.core/bookData (v1 :bookId))]
+      book-data (common.bible.core/book-data (v1 :bookId))]
     {
-      :id (bookData :id)
-      :num (inc (bookData :index))
-      "chapters"
+      :id (book-data :id)
+      :num (inc (book-data :index))
+      :chapters
         (->>
           verses
           (partition-by :chapterNum)

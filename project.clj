@@ -6,7 +6,7 @@
             :distribution :repo}
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.122"
+                 [org.clojure/clojurescript "1.7.145"
                   :exclusion [org.clojure/data.json]]
                  [org.clojure/data.json "0.2.6"]
                  [com.cognitect/transit-cljs "0.8.225"]]
