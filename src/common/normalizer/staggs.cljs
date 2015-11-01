@@ -3,7 +3,7 @@
             [common.bible.core]
             [common.normalizer.filesystem :refer [read-text]]))
 
-(def bookNameMap {
+(def book-name-map {
   "Ge"   :Genesis
   "Ex"   :Exodus
   "Le"   :Leviticus
@@ -71,53 +71,54 @@
   "Jude" :Jude
   "Re"   :Revelation})
 
-(defn transformVerse [s]
-  (let [[_ book ch verse content] (re-matches #"\s+(\w+)\s+(\d+)\:(\d+)\s+(.*)" s)]
-    {
-      :bookId (bookNameMap book)
-      :chapterNum (int ch)
-      :content content
-    }))
+(defn transform-verse [s]
+  (let [[_ book ch verse content] (re-matches #"\s+(\w+)\s+(\d+)\:(\d+)\s+(.*)" s)
+        [_ subtitle cont postscript] (re-matches #"(?:<<([^>]*)>>)?([^<]*)(?:<<\[([^\]]*)\]>>\s*)?" (str content))]
+    {:bookId (book-name-map book)
+     :chapterNum (int ch)
+     :content (string/trim (str cont))
+     :subtitle subtitle
+     :postscript postscript}))
 
-(defn transformChapter [verses]
-  (let [v1 (first verses)]
-    {
-      :num (v1 :chapterNum)
-      "subtitle" false
-      "postscript" false
-      :verses
-        (->>
-          verses
-          (map :content)
-          (vec))
-    }))
+(defn transform-chapter [verses]
+  (let [v1 (first verses)
+        subtitle (:subtitle v1)
+        vn (last verses)
+        postscript (:postscript vn)]
+    {:num (:chapterNum v1)
+     :subtitle (some? subtitle)
+     :postscript (some? postscript)
+     :verses
+       (->>
+         (flatten [subtitle
+                   (map :content verses)
+                   postscript])
+         (filter some?)
+         (vec))}))
 
-(defn transformBook [verses]
-  (let [
-      v1 (first verses)
-      book-data (common.bible.core/book-data (v1 :bookId))]
-    {
-      :id (book-data :id)
-      :num (inc (book-data :index))
-      :chapters
-        (->>
-          verses
-          (partition-by :chapterNum)
-          (map transformChapter)
-          (vec))
-    }))
+(defn transform-book [verses]
+  (let [v1 (first verses)
+        book-data (common.bible.core/book-data (v1 :bookId))]
+    {:id (book-data :id)
+     :num (inc (book-data :index))
+     :chapters
+       (->>
+         verses
+         (partition-by :chapterNum)
+         (map transform-chapter)
+         (vec))}))
 
-(defn transformBible [str]
+(defn transform-bible [str]
   (->>
     str
     (string/split-lines)
-    (map transformVerse)
+    (map transform-verse)
     (filter :bookId)
     (partition-by :bookId)
-    (map transformBook)
+    (map transform-book)
     (vec)))
 
 (defn parser [fs path]
   (->>
     (read-text fs path)
-    (transformBible)))
+    (transform-bible)))

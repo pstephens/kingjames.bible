@@ -102,3 +102,23 @@
 
 (defn get-verses [m-bible book-id chapter-num]
   (get-chapter m-bible book-id chapter-num :verses))
+
+(defn get-verse [m-bible book-id chapter-num verse-num]
+  (let [{verses :verses subtitle? :subtitle}
+          (get-chapter m-bible book-id chapter-num)
+        verse-index (if subtitle? verse-num (dec verse-num))]
+    (get verses verse-index)))
+
+(defn get-subtitle [m-bible book-id chapter-num]
+  (let [{verses :verses subtitle? :subtitle}
+          (get-chapter m-bible book-id chapter-num)
+        idx (if subtitle? 0 -1)]
+    (get verses idx)))
+
+(defn get-postscript [m-bible book-id chapter-num]
+  (let [{verses :verses postscript? :postscript}
+          (get-chapter m-bible book-id chapter-num)
+        idx (if postscript?
+              (dec (count verses))
+              -1)]
+    (get verses idx)))
