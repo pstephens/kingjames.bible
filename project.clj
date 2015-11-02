@@ -26,8 +26,16 @@
        :source-paths ["src"]
        :notify-command ["node" "nodetest.js"]
        :compiler {
-        :output-to "out/nodetests.js"
-        :output-dir "out"
+        :output-to "out/test/nodetests.js"
+        :output-dir "out/test"
+        :target :nodejs
+        :optimizations :none
+        :source-map true}}
+      {:id "biblecli"
+       :source-paths ["src"]
+       :compiler {
+        :output-to "out/cli/biblecli.js"
+        :output-dir "out/cli"
         :target :nodejs
         :optimizations :none
         :source-map true}}]})
