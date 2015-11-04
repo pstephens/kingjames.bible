@@ -1,14 +1,16 @@
 (ns biblecli.main.core
   (:require
     [cljs.nodejs :as nodejs]
-    [biblecli.commands.normalize]))
+    [biblecli.commands.normalize]
+    [biblecli.commands.prepare]))
 
 (nodejs/enable-util-print!)
 
 (def process nodejs/process)
 
 (def commands
-  {"normalize" biblecli.commands.normalize/normalize})
+  {"normalize" biblecli.commands.normalize/normalize
+   "prepare"   biblecli.commands.prepare/prepare!})
 
 (defn- main [command & args]
   (try
