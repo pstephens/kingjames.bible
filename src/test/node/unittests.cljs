@@ -2,14 +2,16 @@
   (:require
     [cljs.nodejs :as nodejs]
     [cljs.test :refer-macros [run-tests] :refer [successful?]]
-    [test.node.normalizer.core]))
+    [test.node.common.bible.coretests]
+    [test.node.common.normalizer.coretests]))
 
 (nodejs/enable-util-print!)
 
 (def process nodejs/process)
 
 (defn- main []
-  (run-tests 'test.node.normalizer.core))
+  (run-tests 'test.node.common.normalizer.coretests
+             'test.node.common.bible.coretests))
 
 (defmethod cljs.test/report [:cljs.test/default :end-run-tests] [m]
   (if (successful? m)

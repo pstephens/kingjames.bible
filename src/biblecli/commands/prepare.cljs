@@ -25,9 +25,6 @@
      :gzip gzip-buf
      :hash h}))
 
-(defn transform-book [book]
-  book)
-
 (defn prepare-book! [dir book]
   (let [encoded (encode-data book)
         filepath (.join node-path dir (str "B" (:num book) "-" (:hash encoded)))]
