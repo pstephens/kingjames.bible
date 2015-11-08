@@ -1,9 +1,10 @@
 (ns test.node.common.normalizer.coretests
-  (:require [cljs.test :refer-macros [deftest testing is]]
-            [common.normalizer.core :refer [parse]]))
+  (:require
+    [cljs.test :refer-macros [deftest testing is]]
+    [test.node.helpers :refer [staggs-model]]))
 
 (deftest test-staggs-parser
-  (let [m (parse "staggs" "kjv-src/www.staggs.pair.com-kjbp/kjv.txt")]
+  (let [m staggs-model]
     (testing "Books"
       (is (= 66 (count (keys m))) "raw book count")
       (is (= :Genesis (get-in m [0 :id])) "get book by keyword Genesis")
