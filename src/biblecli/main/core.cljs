@@ -18,9 +18,10 @@
       (if cmd
         (.exit process (apply cmd args))
         (throw (str "Failed to find command '" command "'."))))
-    (catch js/Object e
+    (catch :default e
       (do
-        (.log js/console e)
+        (prn e)
+        (prn (.-stack e))
         (.exit process 1)))))
 
 (set! *main-cli-fn* main)

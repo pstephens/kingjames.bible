@@ -11,5 +11,24 @@
       (is (= 150 (get-in m [:books 18])) "Chapter count for Psalms")
       (is (= 22 (get-in m [:books 65])) "Chapter count for Revelation"))
     (testing "Chapters"
+      (is (= 1189 (count (get-in m [:chapters]))) "Chapter count")
       (is (= 31 (get-in m [:chapters 0])) "Verse count in Genesis 1")
-      (is (= 26 (get-in m [:chapters 49])) "Verse count in Genesis 50"))))
+      (is (= 26 (get-in m [:chapters 49])) "Verse count in Genesis 50")
+      (is (= 18 (get-in m [:chapters 517])) "Verse count in Psalm 40")
+      (is (= 176 (get-in m [:chapters 596])) "Verse count in Psalm 119")
+      (is (= 26 (get-in m [:chapters 1132])) "Verse count in Philemon")
+      (is (= 21 (get-in m [:chapters 1188])) "Verse count in Rev 22"))
+    (testing "Chapters with subtitle"
+      (is (= 115 (count (get-in m [:subtitle]))) "Subtitled chapter count")
+      (is (= false (contains? (get-in m [:subtitle]) 0)) "Gen 1 is not subtitled")
+      (is (= true (contains? (get-in m [:subtitle]) 517)) "Psalm 40 is subtitled")
+      (is (= false (contains? (get-in m [:subtitle]) 1132)) "Phil is not subtitled"))
+    (testing "Chapter with postscript"
+      (is (= 5 (count (get-in m [:postscript]))) "Postscript chapter count")
+      (is (= false (contains? (get-in m [:postscript]) 0)) "Gen 1 does not have postscript")
+      (is (= false (contains? (get-in m [:postscript]) 517)) "Psalm 40 does not have postscript")
+      (is (= true (contains? (get-in m [:postscript]) 1132)) "Phil  does have postscript"))))
+
+(deftest normalized->persisted-verses
+  (let [m (io/normalized->persisted-verses staggs-model)]
+    (is (= (+ 31102 5 115) (count m)))))
