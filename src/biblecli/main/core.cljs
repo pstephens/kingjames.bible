@@ -2,7 +2,8 @@
   (:require
     [cljs.nodejs :as nodejs]
     [biblecli.commands.normalize]
-    [biblecli.commands.prepare]))
+    [biblecli.commands.prepare]
+    [biblecli.commands.serve]))
 
 (nodejs/enable-util-print!)
 
@@ -10,13 +11,14 @@
 
 (def commands
   {"normalize" biblecli.commands.normalize/normalize
-   "prepare"   biblecli.commands.prepare/prepare!})
+   "prepare"   biblecli.commands.prepare/prepare!
+   "serve"     biblecli.commands.serve/serve})
 
 (defn- main [command & args]
   (try
     (let [cmd (commands command)]
       (if cmd
-        (.exit process (apply cmd args))
+        (apply cmd args)
         (throw (str "Failed to find command '" command "'."))))
     (catch :default e
       (do
