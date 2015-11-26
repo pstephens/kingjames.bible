@@ -24,12 +24,13 @@
         gzip-hash  (compute-hash gzip-buf)
         short-hash (subs h 0 hash-len)
         file-name  (str name "-" short-hash)]
-    (prn "file-name" file-name)
     [{:name       (str file-name ".d")
       :content    utf8-buf
       :headers    {"Cache-Control"  "max-age=2592000, public"
                    "Content-Type"   "application/transit+json"
-                   "Content-Length" (str (obj/get utf8-buf "length"))}
+                   "Content-Length" (str (obj/get utf8-buf "length"))
+                   "Last-Modified"  (.toUTCString (js/Date.))
+                   "ETag"           (str "\"" short-hash "\"")}
       :hash       h
       :short-hash short-hash
       :c-hash     h}
@@ -38,7 +39,9 @@
       :headers    {"Cache-Control"    "max-age=2592000, public"
                    "Content-Encoding" "gzip"
                    "Content-Type"     "application/transit+json"
-                   "Content-Length"   (str (obj/get gzip-buf "length"))}
+                   "Content-Length"   (str (obj/get gzip-buf "length"))
+                   "Last-Modified"    (.toUTCString (js/Date.))
+                   "ETag"             (str "\"" short-hash "\"")}
       :hash       h
       :short-hash short-hash
       :c-hash     gzip-hash}]))
