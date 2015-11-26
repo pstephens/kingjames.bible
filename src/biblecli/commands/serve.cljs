@@ -30,7 +30,7 @@
   (cond
     (get-header req "if-none-match") (not (test-if-none-match req resource))
     (get-header req "if-modified-since") (not (test-if-modified-since req resource))
-    :else :false))
+    :else false))
 
 (defn process-response [res status-code headers content]
   (goog.object/set res "statusCode" status-code)
@@ -68,4 +68,8 @@
   (let [m      (parse parser src)
         r      (res/build-resources m)
         server (.createServer node-http #(process-request r %1 %2))]
-    (.listen server 8080)))
+    (do
+      (doseq [k (keys r)]
+        (prn k))
+      (prn "Listening on port 8080.")
+      (.listen server 8080))))
