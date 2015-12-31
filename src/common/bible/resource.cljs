@@ -35,32 +35,19 @@
   (let [writer     (t/writer :json-verbose)
         string     (t/write writer data)
         utf8-buf   (js/Buffer string "utf8")
-        gzip-buf   (.gzipSync node-zlib utf8-buf)
         h          (compute-hash utf8-buf)
-        gzip-hash  (compute-hash gzip-buf)
         short-hash (subs h 0 hash-len)
         file-name  (str name "-" short-hash)]
-    [{:name       (str file-name ".d")
-      :content    utf8-buf
-      :headers    {"Cache-Control"  "max-age=2592000, public"
-                   "Content-Type"   "application/transit+json"
-                   "Content-Length" (str (obj/get utf8-buf "length"))
-                   "Last-Modified"  (.toUTCString (js/Date.))
-                   "ETag"           (str "\"" short-hash "\"")}
-      :hash       h
-      :short-hash short-hash
-      :c-hash     h}
-     {:name       (str file-name ".z")
-      :content    gzip-buf
-      :headers    {"Cache-Control"    "max-age=2592000, public"
-                   "Content-Encoding" "gzip"
-                   "Content-Type"     "application/transit+json"
-                   "Content-Length"   (str (obj/get gzip-buf "length"))
-                   "Last-Modified"    (.toUTCString (js/Date.))
-                   "ETag"             (str "\"" short-hash "\"")}
-      :hash       h
-      :short-hash short-hash
-      :c-hash     gzip-hash}]))
+    {:key        name
+     :name       (str file-name ".d")
+     :content    utf8-buf
+     :headers    {"Cache-Control"  "max-age=31536000, public"
+                  "Content-Type"   "application/json"
+                  "Content-Length" (str (obj/get utf8-buf "length"))
+                  "Last-Modified"  (.toUTCString (js/Date.))
+                  "ETag"           (str "\"" short-hash "\"")}
+     :hash       h
+     :short-hash short-hash}))
 
 (defn format-name [name num digits]
   (let [numstr (str num)

@@ -10,7 +10,8 @@
                   :exclusion [org.clojure/data.json]]
                  [org.clojure/data.json "0.2.6"]
                  [com.cognitect/transit-cljs "0.8.225"]]
-  :npm {:dependencies [[source-map-support "0.3.2"]]}
+  :npm {:dependencies [[source-map-support "0.3.2"]
+                       [phantomjs2 "2.0.2"]]}
 
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :plugins [[lein-npm "0.6.1"]
