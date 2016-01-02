@@ -6,7 +6,7 @@
             :distribution :repo}
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.clojure/clojurescript "1.7.145"
+                 [org.clojure/clojurescript "1.7.170"
                   :exclusion [org.clojure/data.json]]
                  [org.clojure/data.json "0.2.6"]
                  [com.cognitect/transit-cljs "0.8.225"]]
@@ -15,28 +15,37 @@
 
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :plugins [[lein-npm "0.6.1"]
-            [lein-cljsbuild "1.1.0"]]
+            [lein-cljsbuild "1.1.2"]]
 
   :clean-targets ["out" "release" "target" "node_modules"]
   :target-path "target"
   :source-paths ["src"]
 
   :cljsbuild {
-    :builds [
-      {:id "test"
-       :source-paths ["src"]
-       :notify-command ["node" "nodetest.js"]
-       :compiler {
-        :output-to "out/test/nodetests.js"
-        :output-dir "out/test"
-        :target :nodejs
-        :optimizations :none
-        :source-map true}}
-      {:id "biblecli"
-       :source-paths ["src"]
-       :compiler {
-        :output-to "out/cli/biblecli.js"
-        :output-dir "out/cli"
-        :target :nodejs
-        :optimizations :none
-        :source-map true}}]})
+    :builds {
+      :nodetest {
+        :source-paths ["src"]
+        :notify-command ["node" "nodetest.js"]
+        :compiler {
+          :output-to "out/nodetest/nodetests.js"
+          :output-dir "out/nodetest"
+          :target :nodejs
+          :optimizations :none
+          :source-map true}}
+      :biblecli {
+        :source-paths ["src"]
+        :compiler {
+          :output-to "out/cli/biblecli.js"
+          :output-dir "out/cli"
+          :target :nodejs
+          :optimizations :none
+          :source-map true}}
+      :browsertest {
+        :source-paths ["src"]
+        :compiler {
+          :main test.browser.core
+          :output-to "out/browsertest/browsertests.js"
+          :output-dir "out/browsertest"
+          :asset-path ""
+          :optimizations :none
+          :source-map true}}}})

@@ -12,15 +12,8 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns biblecli.commands.serve
-  (:require
-    [common.asset.server :as server]
-    [common.asset.directory :as dir]
-    [common.bible.resource :as res]
-    [common.normalizer.core :refer [parse]]))
+(ns test.browser.core)
 
-(defn serve [parser src]
-  (let [m (parse parser src)]
-    (server/listen [
-      (res/build-resources m)
-      (dir/resources "c:\\src\\everlastingbible\\out\\browsertest" "/")])))
+(enable-console-print!)
+
+(println "Browser Tests!")

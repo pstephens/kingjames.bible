@@ -19,7 +19,6 @@
     [common.bible.io :as io]
     [goog.object :as obj]))
 
-(def node-zlib (js/require "zlib"))
 (def node-crypto (js/require "crypto"))
 
 (def verse-partition-size 781)
@@ -38,14 +37,14 @@
         h          (compute-hash utf8-buf)
         short-hash (subs h 0 hash-len)
         file-name  (str name "-" short-hash)]
-    {:key        name
-     :name       (str file-name ".d")
+    {:path       (str "/" file-name ".d")
      :content    utf8-buf
      :headers    {"Cache-Control"  "max-age=31536000, public"
                   "Content-Type"   "application/json"
                   "Content-Length" (str (obj/get utf8-buf "length"))
                   "Last-Modified"  (.toUTCString (js/Date.))
                   "ETag"           (str "\"" short-hash "\"")}
+     :key        name
      :hash       h
      :short-hash short-hash}))
 
@@ -69,4 +68,4 @@
   (->> m
     (get-resources)
     (flatten)
-    (reduce (fn [resources r] (assoc resources (:name r) r)) {})))
+    (reduce (fn [resources r] (assoc resources (:path r) r)) {})))
