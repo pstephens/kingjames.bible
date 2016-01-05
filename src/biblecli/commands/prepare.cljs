@@ -21,7 +21,7 @@
 (def node-path (js/require "path"))
 
 (defn write-data! [dir encoded-data]
-  (let [filename (encoded-data :name)
+  (let [filename (subs (encoded-data :path) 1)
         filepath (.join node-path dir filename)]
     (.writeFileSync node-fs filepath (encoded-data :content))))
 

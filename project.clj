@@ -10,8 +10,11 @@
                   :exclusion [org.clojure/data.json]]
                  [org.clojure/data.json "0.2.6"]
                  [com.cognitect/transit-cljs "0.8.225"]]
-  :npm {:dependencies [[source-map-support "0.3.2"]
-                       [phantomjs2 "2.0.2"]]}
+
+  :npm {:dependencies [[gulp "gulpjs/gulp.git#4.0"]
+                       [phantomjs2 "2.0.2"]
+                       [q "1.4.1"]
+                       [source-map-support "0.3.2"]]}
 
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :plugins [[lein-npm "0.6.1"]
@@ -22,30 +25,13 @@
   :source-paths ["src"]
 
   :cljsbuild {
-    :builds {
-      :nodetest {
+    :builds [
+      {
+        :id "dbg"
         :source-paths ["src"]
-        :notify-command ["node" "nodetest.js"]
         :compiler {
-          :output-to "out/nodetest/nodetests.js"
-          :output-dir "out/nodetest"
+          :output-to "out/dbg/debug_refs.js"
+          :output-dir "out/dbg"
           :target :nodejs
           :optimizations :none
-          :source-map true}}
-      :biblecli {
-        :source-paths ["src"]
-        :compiler {
-          :output-to "out/cli/biblecli.js"
-          :output-dir "out/cli"
-          :target :nodejs
-          :optimizations :none
-          :source-map true}}
-      :browsertest {
-        :source-paths ["src"]
-        :compiler {
-          :main test.browser.core
-          :output-to "out/browsertest/browsertests.js"
-          :output-dir "out/browsertest"
-          :asset-path ""
-          :optimizations :none
-          :source-map true}}}})
+          :source-map true}}]})

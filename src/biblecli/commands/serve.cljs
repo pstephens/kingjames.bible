@@ -14,13 +14,20 @@
 
 (ns biblecli.commands.serve
   (:require
+    [biblecli.main.utility :refer [get-root-path]]
     [common.asset.server :as server]
     [common.asset.directory :as dir]
     [common.bible.resource :as res]
     [common.normalizer.core :refer [parse]]))
 
+(def node-path (js/require "path"))
+
 (defn serve [parser src]
-  (let [m (parse parser src)]
+  (let [m (parse parser src)
+        root-path (get-root-path)
+        rel #(.join node-path root-path %)]
+    (println "root-path" root-path)
     (server/listen [
-      (res/build-resources m)
-      (dir/resources "c:\\src\\everlastingbible\\out\\browsertest" "/")])))
+      (->> (parse parser src) (res/build-resources))
+      (dir/resources (rel "out/dbg") "/")
+      (dir/resources (rel "resources") "/")])))
