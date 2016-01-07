@@ -25,8 +25,14 @@
         filepath (.join node-path dir filename)]
     (.writeFileSync node-fs filepath (encoded-data :content))))
 
+(defn write-metadata! [dir buffer]
+  (let [filepath (.join node-path dir "bible-meta.json")]
+    (.writeFileSync node-fs filepath buffer)))
+
 (defn prepare! [parser src output-dir]
   (let [m (parse parser src)
-        r (res/build-resources m)]
+        r (res/build-resources m)
+        metadata (res/metadata->buffer r)]
+    (write-metadata! output-dir metadata)
     (doseq [part (vals r)]
       (write-data! output-dir part))))

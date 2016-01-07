@@ -69,3 +69,17 @@
     (get-resources)
     (flatten)
     (reduce (fn [resources r] (assoc resources (:path r) r)) {})))
+
+(defn metadata->buffer [resources]
+  (let [nocontent
+        (->> (vals resources)
+          (map #(dissoc % :content))
+          (reduce (fn [resources r] (assoc resources (:path r) r)) {}))
+        writer (t/writer :json-verbose)
+        string (t/write writer nocontent)]
+    (js/Buffer string "utf8")))
+
+(defn buffer->metadata [buffer]
+  (let [reader    (t/reader :json-verbose)
+        string    (.toString buffer "utf8")]
+    (t/read reader string)))

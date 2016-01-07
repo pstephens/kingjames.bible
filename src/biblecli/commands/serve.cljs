@@ -15,19 +15,18 @@
 (ns biblecli.commands.serve
   (:require
     [biblecli.main.utility :refer [get-root-path]]
-    [common.asset.server :as server]
+    [common.asset.bible :as bible-res]
     [common.asset.directory :as dir]
+    [common.asset.server :as server]
     [common.bible.resource :as res]
     [common.normalizer.core :refer [parse]]))
 
 (def node-path (js/require "path"))
 
-(defn serve [parser src]
-  (let [m (parse parser src)
-        root-path (get-root-path)
+(defn serve []
+  (let [root-path (get-root-path)
         rel #(.join node-path root-path %)]
-    (println "root-path" root-path)
     (server/listen [
-      (->> (parse parser src) (res/build-resources))
+      (bible-res/resources (rel "out/bible"))
       (dir/resources (rel "out/dbg") "/")
       (dir/resources (rel "resources") "/")])))
