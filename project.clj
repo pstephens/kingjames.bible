@@ -12,6 +12,7 @@
                  [com.cognitect/transit-cljs "0.8.225"]]
 
   :npm {:dependencies [[gulp "gulpjs/gulp.git#4.0"]
+                       [mkdirp "0.5.1"]
                        [phantomjs2 "2.0.2"]
                        [q "1.4.1"]
                        [source-map-support "0.3.2"]]}
