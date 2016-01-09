@@ -12,6 +12,7 @@
                  [com.cognitect/transit-cljs "0.8.225"]]
 
   :npm {:dependencies [[gulp "gulpjs/gulp.git#4.0"]
+                       [lodash "3.10.1"]
                        [mkdirp "0.5.1"]
                        [phantomjs2 "2.0.2"]
                        [q "1.4.1"]
@@ -30,6 +31,7 @@
       {
         :id "dbg"
         :source-paths ["src"]
+        :notify-command ["node" "scripts/write-empty-file.js" "out/dbg/last-compiled.txt"]
         :compiler {
           :output-to "out/dbg/debug_refs.js"
           :output-dir "out/dbg"

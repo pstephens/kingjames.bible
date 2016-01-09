@@ -1,19 +1,31 @@
-var cp = require('child_process');
-var fs = require('fs');
-var gulp = require('gulp');
+var _ =      require('lodash');
+var cp =     require('child_process');
+var fs =     require('fs');
+var gulp =   require('gulp');
 var mkdirp = require('mkdirp');
-var path = require('path');
-var q = require('q');
-var root_dir = __dirname
+var os =     require('os');
+var path =   require('path');
+var q =      require('q');
 
+var root_dir = __dirname
 var node_exec = process.execPath;
 var out_bible_dir = path.join(root_dir, 'out/bible');
+
+function output_to(name, stream) {
+    return function output_to(buff) {
+        _(buff.toString().split(/[\r\n]/))
+            .drop(function(line) { return line.match(/^\s*$/); })
+            .forEach(function(line) {
+                stream.write(name + ': ' + line + os.EOL);
+            });
+    }
+}
 
 function spawn(name, command, args, cb) {
     args = args || [];
     var proc = cp.spawn(command, args, { cwd: root_dir });
-    proc.stdout.on('data', function(buff) { console.log(buff.toString()) });
-    proc.stderr.on('data', function(buff) { console.error(buff.toString()) });
+    proc.stdout.on('data', output_to(name, process.stdout));
+    proc.stderr.on('data', output_to(name, process.stderr));
     proc.on('close', function(code) {
         if(code) {
             cb(new Error(name + ': failed with exit code ' + code));
@@ -28,6 +40,8 @@ function spawn(name, command, args, cb) {
 }
 
 function exec(name, command, args, cb) {
+    // Seems like shell execution on windows while streaming to stdout and stderr is not yet supported.
+    // https://github.com/nodejs/node/issues/1009
     args = args || [];
     if(process.platform === 'win32')
     {
@@ -39,7 +53,7 @@ function exec(name, command, args, cb) {
 }
 
 gulp.task('compile_dbg', function(cb) {
-    exec('lein', 'lein', ['cljsbuild', 'once', 'dbg'], cb);
+    exec('lein', 'lein', ['cljsbuild', 'auto', 'dbg'], cb);
 });
 
 gulp.task('bible_resources_dir', function(cb) {
@@ -57,5 +71,15 @@ gulp.task('node_tests', function(cb) {
     spawn('node', node_exec, ['nodetest.js'], cb);
 });
 
+gulp.task('run_tests',
+    gulp.series('node_tests', 'bible_resources'));
+
+gulp.task('watch_tests', function() {
+    gulp.watch("out/dbg/last-compiled.txt",
+        gulp.series('run_tests'));
+});
+
 gulp.task('default',
-   gulp.series('compile_dbg', 'node_tests', 'bible_resources'));
+   gulp.parallel(
+    'compile_dbg',
+    'watch_tests'));
