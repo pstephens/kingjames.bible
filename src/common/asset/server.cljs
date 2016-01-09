@@ -17,7 +17,7 @@
     [clojure.string :as string]
     [goog.object]))
 
-(def DEFAULT_PORT 8080)
+(def DEFAULT_PORT 7490)
 
 (def node-http (js/require "http"))
 
@@ -90,6 +90,5 @@
     (listen resources DEFAULT_PORT))
   ([resources port]
     (let [server (.createServer node-http #(process-request resources %1 %2))]
-      (doseq [key (mapcat #(keys (resolve-element %)) resources)] (println key))
-      (println "Listening on port" port ".")
+      (println (str "Listening on port " port "."))
       (.listen server port))))

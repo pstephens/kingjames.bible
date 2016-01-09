@@ -17,9 +17,7 @@
     [biblecli.main.utility :refer [get-root-path]]
     [common.asset.bible :as bible-res]
     [common.asset.directory :as dir]
-    [common.asset.server :as server]
-    [common.bible.resource :as res]
-    [common.normalizer.core :refer [parse]]))
+    [common.asset.server :as server]))
 
 (def node-path (js/require "path"))
 
