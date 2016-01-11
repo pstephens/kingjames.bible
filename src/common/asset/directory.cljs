@@ -20,11 +20,13 @@
 
 (def default-mime-map
   {
-    ".js"   "application/javascript"
-    ".html" "text/html"
+    ".clj"  "text/plain"
+    ".cljs" "text/plain"
     ".css"  "text/css"
-    ".map"  "application/json"
+    ".html" "text/html"
+    ".js"   "application/javascript"
     ".json" "application/json"
+    ".map"  "application/json"
   })
 
 (declare process-dir)

@@ -12,8 +12,21 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns test.browser.core)
+(ns test.browser.core
+  (:require [cljs.test :refer-macros [run-tests deftest is] :as test]))
 
 (enable-console-print!)
 
-(println "Browser Tests!")
+(deftest test-it
+  (is (= 50 60)))
+
+(defn ^:export run [] (run-tests))
+
+(defmethod test/report [:cljs.test/default :end-run-tests] [m]
+  (if (test/successful? m)
+    (do
+      (println "Success!")
+      (.exit js/phantom 0))
+    (do
+      (println "FAIL")
+      (.exit js/phantom 1))));

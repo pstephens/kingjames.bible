@@ -15,10 +15,12 @@ var out_bible_dir = path.join(root_dir, 'out/bible');
 function output_to(name, stream) {
     return function output_to(buff) {
         _(buff.toString().split(/[\r\n]/))
-            .drop(function(line) { return line.match(/^\s*$/); })
+            .filter(function(line) {
+                return !(/^\s*$/.test(line)); })
             .forEach(function(line) {
                 stream.write(name + ': ' + line + os.EOL);
-            });
+            })
+            .value();
     }
 }
 
@@ -83,7 +85,7 @@ gulp.task('run_phantom_tests', function() {
     var server = spawn('serve', node_exec, ['biblecli.js', 'serve']);
 
     // launch phantom.js
-    return spawn('phantom', phantom.path, ['phantomtest.js']).promise
+    return spawn('phantom', phantom.path, ['phantomtest.js', 'http://localhost:7490/phantomtest.html']).promise
         .finally(function() {
             server.proc.kill();
         });
