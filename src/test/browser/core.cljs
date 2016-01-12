@@ -18,15 +18,23 @@
 (enable-console-print!)
 
 (deftest test-it
-  (is (= 50 60)))
+  (is (= 60 60))
+  (is (= 61 61)))
+
+(def colors {
+  :red    "\u001b[31m"
+  :green  "\u001b[32m"
+  :yellow "\u001b[33m"
+  :none   "\u001b[0m"
+  })
 
 (defn ^:export run [] (run-tests))
 
 (defmethod test/report [:cljs.test/default :end-run-tests] [m]
   (if (test/successful? m)
     (do
-      (println "Success!")
-      (.exit js/phantom 0))
+      (println (str (colors :green) "Success!" (colors :none)))
+      (println "~~EXIT(0)~~"))
     (do
-      (println "FAIL")
-      (.exit js/phantom 1))));
+      (println (str (colors :red) "FAIL" (colors :none)))
+      (println "~~EXIT(1)~~"))))
