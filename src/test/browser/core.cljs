@@ -13,13 +13,12 @@
 ;;;;   limitations under the License.
 
 (ns test.browser.core
-  (:require [cljs.test :refer-macros [run-tests deftest is] :as test]))
+  (:require
+    [cljs.test :refer-macros [run-tests deftest is] :as test]
+    [test.browser.bible.coretests]
+    [test.browser.bible.iotests]))
 
 (enable-console-print!)
-
-(deftest test-it
-  (is (= 60 60))
-  (is (= 61 61)))
 
 (def colors {
   :red    "\u001b[31m"
@@ -28,7 +27,10 @@
   :none   "\u001b[0m"
   })
 
-(defn ^:export run [] (run-tests))
+(defn ^:export run []
+  (run-tests
+    'test.browser.bible.coretests
+    'test.browser.bible.iotests))
 
 (defmethod test/report [:cljs.test/default :end-run-tests] [m]
   (if (test/successful? m)
@@ -38,3 +40,5 @@
     (do
       (println (str (colors :red) "FAIL" (colors :none)))
       (println "~~EXIT(1)~~"))))
+
+(run)

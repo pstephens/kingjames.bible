@@ -8,8 +8,10 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.clojure/clojurescript "1.7.228"
                   :exclusion [org.clojure/data.json]]
+                 [org.clojure/core.async "0.2.374"]
                  [org.clojure/data.json "0.2.6"]
-                 [com.cognitect/transit-cljs "0.8.225"]]
+                 [com.cognitect/transit-cljs "0.8.225"]
+                 [hiccups "0.3.0"]]
 
   :npm {:dependencies [[gulp "gulpjs/gulp.git#4.0"]
                        [lodash "3.10.1"]

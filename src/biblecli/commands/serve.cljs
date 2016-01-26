@@ -17,14 +17,17 @@
     [biblecli.main.utility :refer [get-root-path]]
     [common.asset.bible :as bible-res]
     [common.asset.directory :as dir]
-    [common.asset.server :as server]))
+    [common.asset.server :as server]
+    [test.asset.testpages :as testpages]))
 
 (def node-path (js/require "path"))
 
 (defn serve []
   (let [root-path (get-root-path)
-        rel #(.join node-path root-path %)]
+        rel #(.join node-path root-path %)
+        bible-dir (rel "out/bible")
+        bible-meta-data (bible-res/read-bible-meta-data bible-dir)]
     (server/listen [
-      (bible-res/resources (rel "out/bible"))
+      (bible-res/resources bible-dir bible-meta-data)
       (dir/resources (rel "out/dbg") "/")
-      (dir/resources (rel "resources") "/")])))
+      (testpages/resources bible-meta-data)])))

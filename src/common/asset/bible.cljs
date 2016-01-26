@@ -26,11 +26,15 @@
           buff (.readFileSync node-fs path)]
       (assoc item :content buff))))
 
-(defn resources [dir]
+(defn read-bible-meta-data [dir]
   (let [dir           (.resolve node-path dir)
         meta-filename (.join node-path dir "bible-meta.json")
         meta-buff     (.readFileSync node-fs meta-filename)
         meta-data     (res/buffer->metadata meta-buff)]
+    meta-data))
+
+(defn resources [dir bible-meta-data]
+  (let [dir (.resolve node-path dir)]
     (->>
-      (vals meta-data)
+      (vals bible-meta-data)
       (reduce #(assoc %1 (:path %2) (process-item dir %2)) {}))))

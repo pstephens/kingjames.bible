@@ -12,7 +12,4 @@ page.onConsoleMessage = function(message) {
 };
 
 page.open(url, function(status) {
-    page.evaluate(function() {
-        test.browser.core.run();
-    });
 });
