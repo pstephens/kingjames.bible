@@ -15,6 +15,7 @@
 (ns test.asset.testpages
   (:require-macros [hiccups.core :as hiccups :refer [html]])
   (:require
+    [common.bible.resource]
     [goog.object :as obj]
     [hiccups.runtime :as hiccupsrt]))
 
@@ -26,6 +27,10 @@
       [:body
         [:script {:type "text/javascript" :src "goog/base.js"}]
         [:script {:type "text/javascript" :src "debug_refs.js"}]
+        [:script {:type "text/javascript"}
+          "goog.require(\"bible.io\");"]
+        [:script {:type "text/javascript"}
+          (common.bible.resource.resource-map bible-meta-data)]
         [:script {:type "text/javascript"}
           "goog.require(\"test.browser.core\");"]]]))
 

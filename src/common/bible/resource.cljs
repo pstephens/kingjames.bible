@@ -31,7 +31,7 @@
       (.digest h "hex"))))
 
 (defn encode-data [name data]
-  (let [writer     (t/writer :json-verbose)
+  (let [writer     (t/writer :json)
         string     (t/write writer data)
         utf8-buf   (js/Buffer string "utf8")
         h          (compute-hash utf8-buf)
@@ -75,11 +75,20 @@
         (->> (vals resources)
           (map #(dissoc % :content))
           (reduce (fn [resources r] (assoc resources (:path r) r)) {}))
-        writer (t/writer :json-verbose)
+        writer (t/writer :json)
         string (t/write writer nocontent)]
     (js/Buffer string "utf8")))
 
 (defn buffer->metadata [buffer]
-  (let [reader    (t/reader :json-verbose)
+  (let [reader    (t/reader :json)
         string    (.toString buffer "utf8")]
     (t/read reader string)))
+
+(defn resource-map [metadata]
+  (str
+    "bible.io.set_resource_ids({"
+    (string/join ","
+       (->>
+        (vals metadata)
+        (map #(str (:key %) ":\"" (:short-hash %) "\""))))
+    "});"))
