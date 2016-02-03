@@ -24,26 +24,121 @@
 (defprotocol ResourceStore
   (get-resource [this resid cb] "The cb should have this signature: (fn [{content :content err :err}] ...)."))
 
-(defn ^:private url-from-resid [state resid]
-  (let [short-hash (get-in state [:hash resid])]
+(defn set-resource-store [store]
+  (swap! state #(assoc % :store store)))
+
+(defmulti resource-event #(:type %))
+
+(defn ^:private url-from-resid [resid-map resid]
+  (let [short-hash (get resid-map resid)]
     (str "/" resid "-" short-hash ".d")))
 
 (deftype XhrManagerSource [mgr]
   ResourceStore
   (get-resource [this resid cb]
-    (let [url (url-from-resid @state resid)
-          on-response
+    (let [url (url-from-resid (:hash @state) resid)
+          reader (t/reader :json)
+          parse-body
             (fn [e]
-              (cb {:content (.getResponseText (obj/get e "target"))}))]
+              (let [target (obj/get e "target")]
+                (if (.isSuccess target)
+                  (try
+                    {:content
+                      (t/read reader (.getResponseText target))}
+                    (catch js/Object e
+                      {:err {:ex e}}))
+                  {:err {:status (.getStatus target)
+                         :statusText (.getStatusText target)}})))
+          on-response (fn [e] (cb (parse-body e)))]
       (.send mgr resid url "GET" nil nil 1 on-response))))
 
-(defn set-resource-store-to-xhr-manager []
-  (swap! state #(assoc % :store (XhrManagerSource. (goog.net.XhrManager. 3 nil nil nil 10000)))))
+(defn make-xhr-manager []
+  (XhrManagerSource. (goog.net.XhrManager. 3 nil nil nil 10000)))
 
 (defn ^:export set-resource-ids [resid-map]
   (if (object? resid-map)
     (recur (js->clj resid-map))
     (swap! state #(assoc % :hash resid-map))))
+
+(defn ^:private post-msg [eventloop msg] (put! eventloop msg))
+
+(defn ^:private fetch-resource-from-store [resid response-ch m cb-ch store eventloop]
+  (let [cb (fn [{content :content err :err}]
+             (post-msg eventloop
+               {:type :response
+                :resid resid
+                :content content
+                :err err
+                :chan cb-ch}))]
+    (tap m response-ch)
+    (get-resource store resid cb)))
+
+(defmethod resource-event :fetch [{resid :resid response-ch :response-ch}]
+  (loop [st @state]
+    (if-let [v (get-in st [:cache resid])]
+      (put! response-ch {:resid resid :val v})
+      (if-let [m (get-in st [:pending resid])]
+        (tap m response-ch)
+        (let [ch        (chan 1)
+              m2        (mult ch)
+              st2       (assoc-in st [:pending resid] m2)
+              store     (:store st2)
+              eventloop (:eventloop st2)]
+          (if (compare-and-set! state st st2)
+            (fetch-resource-from-store resid response-ch m2 ch store eventloop)
+            (recur @state)))))))
+
+(defmethod resource-event :response [{resid :resid data :content err :err ch :chan}]
+  (if err
+    (do
+      (swap! state (fn [st] (update-in st [:pending] #(dissoc % resid))))
+      (put! ch {:resid resid :err err}))
+    (do
+      (swap! state
+        (fn [st]
+          (-> st
+            (update-in [:pending] #(dissoc % resid))
+            (update-in [:cache] #(assoc % resid data)))))
+      (put! ch {:resid resid :val data}))))
+
+(defn ^:private fetch-resource [resid eventloop]
+  (let [ch (chan 1)]
+    (post-msg eventloop
+      {:type :fetch
+       :resid resid
+       :response-ch ch})
+    ch))
+
+(defn ^:private resource-loop []
+  (go-loop [msg (<! (:eventloop @state))]
+    (resource-event msg)
+    (recur (<! (:eventloop @state)))))
+
+(defn ^:private split-pending [resids cache eventloop]
+  (loop [ret {}
+         pending {}
+         ids (seq resids)]
+    (if ids
+      (let [id (first ids)
+            rst (seq (next ids))
+            entry (find cache id)]
+        (if entry
+          (recur (conj ret entry) pending rst)
+          (recur ret (conj pending [id (fetch-resource id eventloop)]) rst)))
+      [ret pending])))
+
+(defn ^:private park-while-pending [[ret pending]]
+  (go-loop [ret ret
+            pending pending]
+    (if (> (count pending) 0)
+      (let [d (alts! (vec (vals pending)))
+            [{resid :resid v :val err :err} _] d]
+        (if err
+          {:err err}
+          (recur
+            (assoc ret resid v)
+            (dissoc pending resid))))
+      ret)))
 
 (defn tryget-resources
   ([resids]
@@ -58,83 +153,16 @@
           nil)
         ret))))
 
-(defn ^:private post-msg
-  ([msg] (post-msg (:eventloop @state) msg))
-  ([eventloop msg] (put! eventloop msg)))
-
-(defmulti resource-event #(:type %))
-
-(defn ^:private do-fetch-resource [resid response-ch]
-  (let [ch (chan 1)
-        m (mult ch)
-        url (url-from-resid @state resid)
-        cb (fn [{content :content err :err}]
-            (post-msg {:type :response
-                       :resid resid
-                       :content content
-                       :chan ch}))]
-    (swap! state #(assoc-in % [:pending resid] m))
-    (tap m response-ch)
-    (get-resource (:store @state) resid cb)))
-
-(defmethod resource-event :fetch [{resid :resid response-ch :response-ch}]
-  (if-let [v (get-in @state [:cache resid])]
-    (put! response-ch {:resid resid :val v})
-    (if-let [m (get-in @state [:pending resid])]
-      (tap m response-ch)
-      (do-fetch-resource resid response-ch))))
-
-(defmethod resource-event :response [{resid :resid content :content ch :chan}]
-  (let [reader (t/reader :json)
-        data   (t/read reader content)]
-    (swap! state
-      (fn [st]
-        (-> st
-          (update-in [:pending] #(dissoc % resid))
-          (update-in [:cache] #(assoc % resid data)))))
-    (put! ch {:resid resid :val data})))
-
-(defn ^:private resource-loop []
-  (go-loop [msg (<! (:eventloop @state))]
-    (resource-event msg)
-    (recur (<! (:eventloop @state)))))
-
-(defn ^:private fetch-resource [resid]
-  (let [ch (chan 1)]
-    (post-msg
-      {:type :fetch
-       :resid resid
-       :response-ch ch})
-    ch))
-
-(defn ^:private split-pending [res resids]
-  (loop [ret {}
-         pending {}
-         ids (seq resids)]
-    (if ids
-      (let [id (first ids)
-            rst (seq (next ids))
-            entry (find res id)]
-        (if entry
-          (recur (conj ret entry) pending rst)
-          (recur ret (conj pending [id (fetch-resource id)]) rst)))
-      [ret pending])))
-
-(defn ^:private park-while-pending [[ret pending]]
-  (go-loop [ret ret
-            pending pending]
-    (if (> (count pending) 0)
-      (let [[{resid :resid v :val} _] (alts! (vec (vals pending)))]
-        (recur
-          (assoc ret resid v)
-          (dissoc pending resid)))
-      ret)))
-
 (defn resources [resids]
-  (->>
-    (split-pending (:cache @state) resids)
-    (park-while-pending)))
+  (let [st @state
+        cache (:cache st)
+        eventloop (:eventloop st)]
+    (->>
+      (split-pending resids cache eventloop)
+      (park-while-pending))))
+
+;; default configuration
+(set-resource-store (make-xhr-manager))
 
 ;; fire up the event loop
-(set-resource-store-to-xhr-manager)
 (resource-loop)
