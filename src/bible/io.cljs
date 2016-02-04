@@ -14,7 +14,8 @@
 
 (ns bible.io
   (:require-macros [cljs.core.async.macros :refer [go-loop]])
-  (:require [cljs.core.async :refer [to-chan chan put! tap mult <!]]
+  (:require [bible.meta]
+            [cljs.core.async :refer [to-chan chan put! tap mult <!]]
             [cognitect.transit :as t]
             [goog.net.XhrManager :as xhr]
             [goog.object :as obj]))
@@ -28,6 +29,11 @@
   (swap! state #(assoc % :store store)))
 
 (defmulti resource-event #(:type %))
+
+(defmulti resource-transform #(nth % 0))
+
+(defmethod resource-transform :default [[resid v]]
+  v)
 
 (defn ^:private url-from-resid [resid-map resid]
   (let [short-hash (get resid-map resid)]
@@ -94,12 +100,13 @@
       (swap! state (fn [st] (update-in st [:pending] #(dissoc % resid))))
       (put! ch {:resid resid :err err}))
     (do
-      (swap! state
-        (fn [st]
-          (-> st
-            (update-in [:pending] #(dissoc % resid))
-            (update-in [:cache] #(assoc % resid data)))))
-      (put! ch {:resid resid :val data}))))
+      (let [data (resource-transform [resid data])]
+        (swap! state
+          (fn [st]
+            (-> st
+              (update-in [:pending] #(dissoc % resid))
+              (update-in [:cache] #(assoc % resid data)))))
+        (put! ch {:resid resid :val data})))))
 
 (defn ^:private fetch-resource [resid eventloop]
   (let [ch (chan 1)]
@@ -113,6 +120,47 @@
   (go-loop [msg (<! (:eventloop @state))]
     (resource-event msg)
     (recur (<! (:eventloop @state)))))
+
+(defn ^:private transform-books [books]
+  (let
+    [[_ _ transformed-books]
+      (->>
+        books
+        (map (fn [id chapter-cnt] [chapter-cnt id]) bible.meta/books)
+        (reduce
+          (fn [[chapter-idx idx acc] [chapter-cnt id]]
+            [(+ chapter-idx chapter-cnt)
+             (inc idx)
+             (conj acc
+               {:id id
+                :idx idx
+                :chapter-cnt chapter-cnt
+                :chapter-idx chapter-idx})])
+          [0 0 []]))]
+    transformed-books))
+
+(defn ^:private transform-chapters [chapters]
+  (let
+    [[_ _ transformed-chapters]
+      (reduce
+        (fn [[verse-idx idx acc] verse-cnt]
+          [(+ verse-idx verse-cnt)
+           (inc idx)
+           (conj acc
+             {:idx idx
+              :verse-idx verse-idx
+              :verse-cnt verse-cnt
+              ;; :book-idx
+              ;; :subtitle
+              ;; :postscript
+              })])
+        [0 0 []]
+        chapters)]
+    transformed-chapters))
+
+(defmethod resource-transform "B" [[resid v]]
+  {:books (transform-books (:books v))
+   :chapters (transform-chapters (:chapters v))})
 
 (defn ^:private split-pending [resids cache eventloop]
   (loop [ret {}

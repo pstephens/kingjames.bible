@@ -31,5 +31,21 @@
 (deftest resources
   (async done
     (go
-      (is (= 66 (count (get-in (<! (io/resources ["B"])) ["B" :books]))))
+      (testing "B-Book model"
+        (is (= 66 (count (get-in (<! (io/resources ["B"])) ["B" :books]))))
+        (is (= :Genesis (get-in (<! (io/resources ["B"])) ["B" :books 0 :id])))
+        (is (= :Revelation (get-in (<! (io/resources ["B"])) ["B" :books 65 :id])))
+        (is (= 50 (get-in (<! (io/resources ["B"])) ["B" :books 0 :chapter-cnt])))
+        (is (= 22 (get-in (<! (io/resources ["B"])) ["B" :books 65 :chapter-cnt])))
+        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :books 0 :chapter-idx])))
+        (is (= 50 (get-in (<! (io/resources ["B"])) ["B" :books 1 :chapter-idx])))
+        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :books 0 :idx])))
+        (is (= 10 (get-in (<! (io/resources ["B"])) ["B" :books 10 :idx]))))
+      (testing "B-Chapter model"
+        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :chapters 0 :idx])))
+        (is (= 300 (get-in (<! (io/resources ["B"])) ["B" :chapters 300 :idx])))
+        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :chapters 0 :verse-idx])))
+        (is (= 31 (get-in (<! (io/resources ["B"])) ["B" :chapters 1 :verse-idx])))
+        (is (= 31 (get-in (<! (io/resources ["B"])) ["B" :chapters 0 :verse-cnt])))
+        (is (= 25 (get-in (<! (io/resources ["B"])) ["B" :chapters 1 :verse-cnt]))))
       (done))))
