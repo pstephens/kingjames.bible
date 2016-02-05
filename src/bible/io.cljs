@@ -121,46 +121,62 @@
     (resource-event msg)
     (recur (<! (:eventloop @state)))))
 
-(defn ^:private transform-books [books]
-  (let
-    [[_ _ transformed-books]
-      (->>
-        books
-        (map (fn [id chapter-cnt] [chapter-cnt id]) bible.meta/books)
-        (reduce
-          (fn [[chapter-idx idx acc] [chapter-cnt id]]
-            [(+ chapter-idx chapter-cnt)
-             (inc idx)
-             (conj acc
-               {:id id
-                :idx idx
-                :chapter-cnt chapter-cnt
-                :chapter-idx chapter-idx})])
-          [0 0 []]))]
-    transformed-books))
+(defn ^:private assoc-if [coll k v]
+  (if v
+    (assoc coll k v)
+    coll))
 
-(defn ^:private transform-chapters [chapters]
-  (let
-    [[_ _ transformed-chapters]
-      (reduce
-        (fn [[verse-idx idx acc] verse-cnt]
-          [(+ verse-idx verse-cnt)
-           (inc idx)
-           (conj acc
-             {:idx idx
-              :verse-idx verse-idx
-              :verse-cnt verse-cnt
-              ;; :book-idx
-              ;; :subtitle
-              ;; :postscript
-              })])
-        [0 0 []]
-        chapters)]
-    transformed-chapters))
+(defn ^:private transform-books [books]
+  (loop [idx 0
+         chapter-idx 0
+         chapter-cnt (seq books)
+         id (seq bible.meta/books)
+         acc []]
+    (if (seq id)
+      (recur (inc idx)
+             (+ chapter-idx (first chapter-cnt))
+             (rest chapter-cnt)
+             (rest id)
+             (conj acc
+               {:id (first id)
+                :idx idx
+                :chapter-cnt (first chapter-cnt)
+                :chapter-idx chapter-idx}))
+      acc)))
+
+(defn next-book-idx [books chapter-idx book-idx]
+  (let [book (get books book-idx)
+        last-chapter-idx (+ (:chapter-idx book) (:chapter-cnt book) -1)]
+    (if (>= chapter-idx last-chapter-idx)
+      (inc book-idx)
+      book-idx)))
+
+(defn ^:private transform-chapters [chapters books subtitle postscript]
+  (loop [idx 0
+         verse-idx 0
+         book-idx 0
+         verse-cnt (seq chapters)
+         acc []]
+    (if (seq verse-cnt)
+      (recur (inc idx)
+             (+ verse-idx (first verse-cnt))
+             (next-book-idx books idx book-idx)
+             (rest verse-cnt)
+             (conj acc
+               (->
+                {:idx idx
+                 :book-idx book-idx
+                 :verse-idx verse-idx
+                 :verse-cnt (first verse-cnt)}
+                (assoc-if :subtitle (contains? subtitle idx))
+                (assoc-if :postscript (contains? postscript idx)))))
+      acc)))
 
 (defmethod resource-transform "B" [[resid v]]
-  {:books (transform-books (:books v))
-   :chapters (transform-chapters (:chapters v))})
+  (let [books (transform-books (:books v))
+        chapters (transform-chapters (:chapters v) books (:subtitle v) (:postscript v))]
+    {:books books
+     :chapters chapters}))
 
 (defn ^:private split-pending [resids cache eventloop]
   (loop [ret {}
