@@ -16,7 +16,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [bible.io :as io]
             [cljs.core.async :refer [<!]]
-            [cljs.test :refer-macros [async deftest testing is]]))
+            [cljs.test :refer-macros [async deftest testing is use-fixtures]]))
 
 (deftest tryget-resources
   (let [sample-data {"A1" 1 "A2" 2 "A3" 3}]
@@ -27,6 +27,41 @@
     (is (= nil (io/tryget-resources sample-data ["A1" "A4"])) "Returns null when a key is missing from cache. #2")
     (is (= {} (io/tryget-resources sample-data [])) "Works with empty set.")
     (is (= {} (io/tryget-resources sample-data nil)) "Works with empty nil.")))
+
+(defprotocol MockStore
+  (set-response [this resid response])
+  (get-accessed [this]))
+
+(deftype TestResourceStore [state]
+  io/ResourceStore
+  (get-resource [this resid cb]
+    (let [r (get-in @state [:resources resid])]
+      (swap! state #(update-in % [:accessed resid] (fn [x] (if x (inc x) 1))))
+      (if r
+        (cb r)
+        (throw (js/Error. (str "Response not found for resid " resid))))))
+  MockStore
+  (set-response [this resid response]
+    (swap! state #(assoc-in % [:resources resid] response)))
+  (get-accessed [this]
+    (get-in @state [:accessed])))
+
+(defn make-mock-store
+  ([] (make-mock-store {}))
+  ([resources] (TestResourceStore. (atom {:resources resources :accessed {}}))))
+
+(defn set-mock-store
+  ([] (set-mock-store (make-mock-store)))
+  ([store]
+    (io/reset-state)
+    (io/set-resource-store store)
+    store))
+
+(use-fixtures :once
+  {:after
+    (fn []
+      (io/reset-state)
+      (io/set-resource-store (io/make-xhr-manager)))})
 
 (deftest resources
   (async done
@@ -58,4 +93,26 @@
         (is (= 65 (get-in (<! (io/resources ["B"])) ["B" :chapters 1188 :book-idx])))
         (is (= 65 (get-in (<! (io/resources ["B"])) ["B" :chapters 1167 :book-idx])))
         (is (= 64 (get-in (<! (io/resources ["B"])) ["B" :chapters 1166 :book-idx]))))
+      (testing "Multiple resources"
+        (is (= 3 (count (<! (io/resources ["B" "V01" "V20"])))))
+        (is (= 2 (count (<! (io/resources ["V21" "V22"])))))
+        (is (= {} (<! (io/resources [])))))
+      (testing "Errors should return an :err key"
+        (is (contains? (<! (io/resources ["X25"])) :err))
+        (is (contains? (<! (io/resources ["B" "X25"])) :err))
+        (is (not (contains? (<! (io/resources ["B"])) :err))))
+      (testing "Get single resource"
+        (io/reset-state)
+        (let [store (set-mock-store (make-mock-store {"X01" {:content {:result 1}}}))
+              req1  (io/resources ["X01"])]
+          (is (= {"X01" {:result 1}} (<! req1)))
+          (is (= {"X01" 1} (get-accessed store)))))
+      (testing "Get should only fetch resource once"
+        (io/reset-state)
+        (let [store (set-mock-store (make-mock-store {"X01" {:content {:result 2}}}))
+              req1  (io/resources ["X01"])
+              req2  (io/resources ["X01"])]
+          (is (= {"X01" {:result 2}} (<! req1)))
+          (is (= {"X01" {:result 2}} (<! req2)))
+          (is (= {"X01" 1} (get-accessed store)))))
       (done))))

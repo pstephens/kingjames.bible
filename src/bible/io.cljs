@@ -230,3 +230,6 @@
 
 ;; fire up the event loop
 (resource-loop)
+
+(defn reset-state []
+  (swap! state #(dissoc % :cache :pending)))
