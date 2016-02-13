@@ -181,14 +181,14 @@
 (defn ^:private split-pending [resids cache eventloop]
   (loop [ret {}
          pending {}
-         ids (seq resids)]
-    (if ids
-      (let [id (first ids)
-            rst (seq (next ids))
-            entry (find cache id)]
+         resids (seq resids)]
+    (if resids
+      (let [resid (first resids)
+            rst (seq (next resids))
+            entry (find cache resid)]
         (if entry
           (recur (conj ret entry) pending rst)
-          (recur ret (conj pending [id (fetch-resource id eventloop)]) rst)))
+          (recur ret (conj pending [resid (fetch-resource resid eventloop)]) rst)))
       [ret pending])))
 
 (defn ^:private park-while-pending [[ret pending]]

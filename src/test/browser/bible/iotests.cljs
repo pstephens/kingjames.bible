@@ -101,13 +101,15 @@
         (is (contains? (<! (io/resources ["X25"])) :err))
         (is (contains? (<! (io/resources ["B" "X25"])) :err))
         (is (not (contains? (<! (io/resources ["B"])) :err))))
+
       (testing "Get single resource"
         (io/reset-state)
         (let [store (set-mock-store (make-mock-store {"X01" {:content {:result 1}}}))
               req1  (io/resources ["X01"])]
           (is (= {"X01" {:result 1}} (<! req1)))
           (is (= {"X01" 1} (get-accessed store)))))
-      (testing "Get should only fetch resource once"
+
+      (testing "Should only fetch resource once"
         (io/reset-state)
         (let [store (set-mock-store (make-mock-store {"X01" {:content {:result 2}}}))
               req1  (io/resources ["X01"])
@@ -115,4 +117,52 @@
           (is (= {"X01" {:result 2}} (<! req1)))
           (is (= {"X01" {:result 2}} (<! req2)))
           (is (= {"X01" 1} (get-accessed store)))))
+
+      (testing "Should pull as much as possible out of cache"
+        (io/reset-state)
+        (let [store (set-mock-store
+                      (make-mock-store {"X01" {:content {:result 3}}
+                                        "X34" {:content {:result 4}}}))]
+          (is (= {"X01" {:result 3}} (<! (io/resources ["X01"]))))
+          (is (= {"X01" 1} (get-accessed store)))
+
+          (is (= {"X01" {:result 3} "X34" {:result 4}}
+            (<! (io/resources ["X01" "X34"]))))
+          (is (= {"X01" 1 "X34" 1} (get-accessed store)))))
+
+      (testing "Shouldn't fetch anything when request is empty"
+        (io/reset-state)
+        (let [store (set-mock-store (make-mock-store {}))]
+          (is (= {} (<! (io/resources []))))
+          (is (= {} (get-accessed store)))))
+
+      (testing "Should pull multiple resources in single request"
+        (io/reset-state)
+        (let [store (set-mock-store
+                      (make-mock-store {"X01" {:content {:result 3}}
+                                        "X34" {:content {:result 4}}}))]
+          (is (= {"X01" {:result 3} "X34" {:result 4}} (<! (io/resources ["X01" "X34"]))))
+          (is (= {"X01" 1 "X34" 1} (get-accessed store)))))
+
+      (testing "Should pass through error"
+        (io/reset-state)
+        (let [store (set-mock-store
+                      (make-mock-store {"X01" {:err "Failure"}}))]
+          (is (= {:err "Failure"} (<! (io/resources ["X01"]))))
+          (is (= {"X01" 1} (get-accessed store)))))
+
+      (testing "Should treat partial failure as error"
+        (io/reset-state)
+        (let [store (set-mock-store
+                      (make-mock-store {"X05" {:content {:res 2}} "X07" {:err "Failure"}}))]
+          (is (= {:err "Failure"} (<! (io/resources ["X05" "X07"]))))
+          (is (= {"X05" 1 "X07" 1} (get-accessed store)))))
+
+      (testing "Should treat partial failure as error (2)"
+        (io/reset-state)
+        (let [store (set-mock-store
+                      (make-mock-store {"X07" {:content {:res 2}} "X05" {:err "Failure"}}))]
+          (is (= {:err "Failure"} (<! (io/resources ["X05" "X07"]))))
+          (is (= {"X05" 1 "X07" 1} (get-accessed store)))))
+
       (done))))
