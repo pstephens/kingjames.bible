@@ -67,46 +67,46 @@
   (async done
     (go
       (testing "B-Book model"
-        (is (= 66 (count (get-in (<! (io/resources ["B"])) ["B" :books]))))
-        (is (= :Genesis (get-in (<! (io/resources ["B"])) ["B" :books 0 :id])))
-        (is (= :Revelation (get-in (<! (io/resources ["B"])) ["B" :books 65 :id])))
-        (is (= 50 (get-in (<! (io/resources ["B"])) ["B" :books 0 :chapter-cnt])))
-        (is (= 22 (get-in (<! (io/resources ["B"])) ["B" :books 65 :chapter-cnt])))
-        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :books 0 :chapter-idx])))
-        (is (= 50 (get-in (<! (io/resources ["B"])) ["B" :books 1 :chapter-idx])))
-        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :books 0 :idx])))
-        (is (= 10 (get-in (<! (io/resources ["B"])) ["B" :books 10 :idx]))))
+        (is (= 66 (count (get-in (<! (io/resources ["B"])) [0 "B" :books]))))
+        (is (= :Genesis (get-in (<! (io/resources ["B"])) [0 "B" :books 0 :id])))
+        (is (= :Revelation (get-in (<! (io/resources ["B"])) [0 "B" :books 65 :id])))
+        (is (= 50 (get-in (<! (io/resources ["B"])) [0 "B" :books 0 :chapter-cnt])))
+        (is (= 22 (get-in (<! (io/resources ["B"])) [0 "B" :books 65 :chapter-cnt])))
+        (is (= 0 (get-in (<! (io/resources ["B"])) [0 "B" :books 0 :chapter-idx])))
+        (is (= 50 (get-in (<! (io/resources ["B"])) [0 "B" :books 1 :chapter-idx])))
+        (is (= 0 (get-in (<! (io/resources ["B"])) [0 "B" :books 0 :idx])))
+        (is (= 10 (get-in (<! (io/resources ["B"])) [0 "B" :books 10 :idx]))))
       (testing "B-Chapter model"
-        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :chapters 0 :idx])))
-        (is (= 300 (get-in (<! (io/resources ["B"])) ["B" :chapters 300 :idx])))
-        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :chapters 0 :verse-idx])))
-        (is (= 31 (get-in (<! (io/resources ["B"])) ["B" :chapters 1 :verse-idx])))
-        (is (= 31 (get-in (<! (io/resources ["B"])) ["B" :chapters 0 :verse-cnt])))
-        (is (= 25 (get-in (<! (io/resources ["B"])) ["B" :chapters 1 :verse-cnt])))
-        (is (= nil (get-in (<! (io/resources ["B"])) ["B" :chapters 0 :subtitle])))
-        (is (= true (get-in (<! (io/resources ["B"])) ["B" :chapters 578 :subtitle])))
-        (is (= nil (get-in (<! (io/resources ["B"])) ["B" :chapters 50 :postscript])))
-        (is (= true (get-in (<! (io/resources ["B"])) ["B" :chapters 1124 :postscript])))
-        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :chapters 0 :book-idx])))
-        (is (= 0 (get-in (<! (io/resources ["B"])) ["B" :chapters 49 :book-idx])))
-        (is (= 1 (get-in (<! (io/resources ["B"])) ["B" :chapters 50 :book-idx])))
-        (is (= 65 (get-in (<! (io/resources ["B"])) ["B" :chapters 1188 :book-idx])))
-        (is (= 65 (get-in (<! (io/resources ["B"])) ["B" :chapters 1167 :book-idx])))
-        (is (= 64 (get-in (<! (io/resources ["B"])) ["B" :chapters 1166 :book-idx]))))
+        (is (= 0 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 0 :idx])))
+        (is (= 300 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 300 :idx])))
+        (is (= 0 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 0 :verse-idx])))
+        (is (= 31 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 1 :verse-idx])))
+        (is (= 31 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 0 :verse-cnt])))
+        (is (= 25 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 1 :verse-cnt])))
+        (is (= nil (get-in (<! (io/resources ["B"])) [0 "B" :chapters 0 :subtitle])))
+        (is (= true (get-in (<! (io/resources ["B"])) [0 "B" :chapters 578 :subtitle])))
+        (is (= nil (get-in (<! (io/resources ["B"])) [0 "B" :chapters 50 :postscript])))
+        (is (= true (get-in (<! (io/resources ["B"])) [0 "B" :chapters 1124 :postscript])))
+        (is (= 0 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 0 :book-idx])))
+        (is (= 0 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 49 :book-idx])))
+        (is (= 1 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 50 :book-idx])))
+        (is (= 65 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 1188 :book-idx])))
+        (is (= 65 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 1167 :book-idx])))
+        (is (= 64 (get-in (<! (io/resources ["B"])) [0 "B" :chapters 1166 :book-idx]))))
       (testing "Multiple resources"
-        (is (= 3 (count (<! (io/resources ["B" "V01" "V20"])))))
-        (is (= 2 (count (<! (io/resources ["V21" "V22"])))))
-        (is (= {} (<! (io/resources [])))))
+        (is (= 3 (count (get-in (<! (io/resources ["B" "V01" "V20"])) [0]))))
+        (is (= 2 (count (get-in (<! (io/resources ["V21" "V22"])) [0]))))
+        (is (= [{} nil] (<! (io/resources [])))))
       (testing "Errors should return an :err key"
-        (is (contains? (<! (io/resources ["X25"])) :err))
-        (is (contains? (<! (io/resources ["B" "X25"])) :err))
-        (is (not (contains? (<! (io/resources ["B"])) :err))))
+        (is (some? (get-in (<! (io/resources ["X25"])) [1])))
+        (is (some? (get-in (<! (io/resources ["B" "X25"])) [1])))
+        (is (nil? (get-in (<! (io/resources ["B"])) [1]))))
 
       (testing "Get single resource"
         (io/reset-state)
         (let [store (set-mock-store (make-mock-store {"X01" {:content {:result 1}}}))
               req1  (io/resources ["X01"])]
-          (is (= {"X01" {:result 1}} (<! req1)))
+          (is (= [{"X01" {:result 1}} nil] (<! req1)))
           (is (= {"X01" 1} (get-accessed store)))))
 
       (testing "Should only fetch resource once"
@@ -114,8 +114,8 @@
         (let [store (set-mock-store (make-mock-store {"X01" {:content {:result 2}}}))
               req1  (io/resources ["X01"])
               req2  (io/resources ["X01"])]
-          (is (= {"X01" {:result 2}} (<! req1)))
-          (is (= {"X01" {:result 2}} (<! req2)))
+          (is (= [{"X01" {:result 2}} nil] (<! req1)))
+          (is (= [{"X01" {:result 2}} nil] (<! req2)))
           (is (= {"X01" 1} (get-accessed store)))))
 
       (testing "Should pull as much as possible out of cache"
@@ -123,17 +123,17 @@
         (let [store (set-mock-store
                       (make-mock-store {"X01" {:content {:result 3}}
                                         "X34" {:content {:result 4}}}))]
-          (is (= {"X01" {:result 3}} (<! (io/resources ["X01"]))))
+          (is (= [{"X01" {:result 3}} nil] (<! (io/resources ["X01"]))))
           (is (= {"X01" 1} (get-accessed store)))
 
-          (is (= {"X01" {:result 3} "X34" {:result 4}}
+          (is (= [{"X01" {:result 3} "X34" {:result 4}} nil]
             (<! (io/resources ["X01" "X34"]))))
           (is (= {"X01" 1 "X34" 1} (get-accessed store)))))
 
       (testing "Shouldn't fetch anything when request is empty"
         (io/reset-state)
         (let [store (set-mock-store (make-mock-store {}))]
-          (is (= {} (<! (io/resources []))))
+          (is (= [{} nil] (<! (io/resources []))))
           (is (= {} (get-accessed store)))))
 
       (testing "Should pull multiple resources in single request"
@@ -141,28 +141,29 @@
         (let [store (set-mock-store
                       (make-mock-store {"X01" {:content {:result 3}}
                                         "X34" {:content {:result 4}}}))]
-          (is (= {"X01" {:result 3} "X34" {:result 4}} (<! (io/resources ["X01" "X34"]))))
+          (is (= [{"X01" {:result 3} "X34" {:result 4}} nil]
+            (<! (io/resources ["X01" "X34"]))))
           (is (= {"X01" 1 "X34" 1} (get-accessed store)))))
 
       (testing "Should pass through error"
         (io/reset-state)
         (let [store (set-mock-store
                       (make-mock-store {"X01" {:err "Failure"}}))]
-          (is (= {:err "Failure"} (<! (io/resources ["X01"]))))
+          (is (= [nil "Failure"] (<! (io/resources ["X01"]))))
           (is (= {"X01" 1} (get-accessed store)))))
 
       (testing "Should treat partial failure as error"
         (io/reset-state)
         (let [store (set-mock-store
                       (make-mock-store {"X05" {:content {:res 2}} "X07" {:err "Failure"}}))]
-          (is (= {:err "Failure"} (<! (io/resources ["X05" "X07"]))))
+          (is (= [nil "Failure"] (<! (io/resources ["X05" "X07"]))))
           (is (= {"X05" 1 "X07" 1} (get-accessed store)))))
 
       (testing "Should treat partial failure as error (2)"
         (io/reset-state)
         (let [store (set-mock-store
                       (make-mock-store {"X07" {:content {:res 2}} "X05" {:err "Failure"}}))]
-          (is (= {:err "Failure"} (<! (io/resources ["X05" "X07"]))))
+          (is (= [nil "Failure"] (<! (io/resources ["X05" "X07"]))))
           (is (= {"X05" 1 "X07" 1} (get-accessed store)))))
 
       (done))))

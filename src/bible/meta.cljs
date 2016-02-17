@@ -81,3 +81,13 @@
    :John3
    :Jude
    :Revelation])
+
+(def ^:private book-id-to-idx-map
+   (delay
+      (->>
+         books
+         (map-indexed (fn [idx id] [id idx]))
+         (reduce conj {}))))
+
+(defn book-id-to-idx [book-id]
+   (get @book-id-to-idx-map book-id))

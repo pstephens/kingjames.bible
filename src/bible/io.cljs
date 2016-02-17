@@ -198,11 +198,11 @@
       (let [d (alts! (vec (vals pending)))
             [{resid :resid v :val err :err} _] d]
         (if err
-          {:err err}
+          [nil err]
           (recur
             (assoc ret resid v)
             (dissoc pending resid))))
-      ret)))
+      [ret nil])))
 
 (defn tryget-resources
   ([resids]

@@ -12,10 +12,34 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns bible.core)
+(ns bible.core
+  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require [bible.io :as io]
+            [bible.meta]))
 
 (defn parse-ref [ref]
   [(ref 0) nil nil])
 
-(defn book [ref]
-  )
+(defn book
+  ([book-refs]
+    (go
+      (let [[{book-res "B"} err] (<! (io/resources ["B"]))]
+        (if err
+          [nil err]
+          (book book-res book-refs)))))
+  ([book-res book-refs]
+    (loop [acc []
+           book-refs (seq book-refs)]
+      (if book-refs
+        (let [book-ref (first book-refs)
+              next-refs (next book-refs)
+              idx (if (keyword? book-ref)
+                    (bible.meta/book-id-to-idx book-ref)
+                    book-ref)
+              data (get-in book-res [:books idx])]
+          (if data
+            (recur
+              (conj acc data)
+              next-refs)
+            [nil (js/Error. (str "Invalid book-ref " book-ref "."))]))
+        [acc nil]))))
