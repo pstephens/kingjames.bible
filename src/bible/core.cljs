@@ -13,8 +13,10 @@
 ;;;;   limitations under the License.
 
 (ns bible.core
-  (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [bible.io :as io]
+  (:require-macros [bible.macros :refer [<?]]
+                   [cljs.core.async.macros :refer [go]])
+  (:require [bible.helpers]
+            [bible.io :as io]
             [bible.meta]))
 
 (defn parse-ref [ref]
@@ -23,10 +25,12 @@
 (defn book
   ([book-refs]
     (go
-      (let [[{book-res "B"} err] (<! (io/resources ["B"]))]
-        (if err
-          [nil err]
-          (book book-res book-refs)))))
+      (try
+        (let [{book-res "B"} (<? (io/resources ["B"]))]
+          (book book-res book-refs))
+        (catch js/Error e
+          e))))
+
   ([book-res book-refs]
     (loop [acc []
            book-refs (seq book-refs)]
@@ -41,5 +45,5 @@
             (recur
               (conj acc data)
               next-refs)
-            [nil (js/Error. (str "Invalid book-ref " book-ref "."))]))
-        [acc nil]))))
+            (throw (js/Error. (str "Invalid book-ref " book-ref ".")))))
+        acc))))

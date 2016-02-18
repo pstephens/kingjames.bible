@@ -47,14 +47,13 @@
           parse-body
             (fn [e]
               (let [target (obj/get e "target")]
-                (if (.isSuccess target)
-                  (try
+                (try
+                  (if (.isSuccess target)
                     {:content
                       (t/read reader (.getResponseText target))}
-                    (catch js/Object e
-                      {:err {:ex e}}))
-                  {:err {:status (.getStatus target)
-                         :statusText (.getStatusText target)}})))
+                    (throw (js/Error. (str "Failed to retrieve resource '" resid "': " (.getStatus target) " " (.getStatusText target)))))
+                  (catch js/Error e
+                    {:err e}))))
           on-response (fn [e] (cb (parse-body e)))]
       (.send mgr resid url "GET" nil nil 1 on-response))))
 
@@ -117,9 +116,10 @@
     ch))
 
 (defn ^:private resource-loop []
-  (go-loop [msg (<! (:eventloop @state))]
-    (resource-event msg)
-    (recur (<! (:eventloop @state)))))
+  (go-loop []
+    (let [msg (<! (:eventloop @state))]
+      (resource-event msg)
+      (recur))))
 
 (defn ^:private assoc-if [coll k v]
   (if v
@@ -198,11 +198,11 @@
       (let [d (alts! (vec (vals pending)))
             [{resid :resid v :val err :err} _] d]
         (if err
-          [nil err]
+          err
           (recur
             (assoc ret resid v)
             (dissoc pending resid))))
-      [ret nil])))
+      ret)))
 
 (defn tryget-resources
   ([resids]
