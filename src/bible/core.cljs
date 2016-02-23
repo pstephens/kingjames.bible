@@ -47,3 +47,39 @@
               next-refs)
             (throw (js/Error. (str "Invalid book-ref " book-ref ".")))))
         acc))))
+
+(defn parse-chapter-ref [res r]
+  (cond
+    (integer? r)
+    r
+
+    (and (vector? r) (= 2 (count r)))
+    (let [[book-id  chapter-num] r
+           book-idx (bible.meta/book-id-to-idx book-id)
+           {chapter-cnt :chapter-cnt
+            chapter-idx :chapter-idx} (get-in res [:books book-idx])]
+      (if (and (>= chapter-num 1) (<= chapter-num chapter-cnt))
+        (+ chapter-idx chapter-num -1)
+        nil))))
+
+(defn chapter
+  ([chapter-refs]
+    (go
+      (try
+        (let [{res "B"} (<? (io/resources ["B"]))]
+          (chapter res chapter-refs))
+        (catch js/Error e
+          e))))
+
+  ([res chapter-refs]
+    (loop [acc []
+           chapter-refs (seq chapter-refs)]
+      (if chapter-refs
+        (let [chapter-ref (first chapter-refs)
+              next-refs (next chapter-refs)
+              idx (parse-chapter-ref res chapter-ref)
+              data (get-in res [:chapters idx])]
+          (if data
+            (recur (conj acc data) next-refs)
+            (throw (js/Error. (str "Invalid chapter-ref " chapter-ref ".")))))
+        acc))))

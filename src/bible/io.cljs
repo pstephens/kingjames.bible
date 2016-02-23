@@ -165,7 +165,7 @@
              (conj acc
                (->
                 {:idx idx
-                 :book-idx book-idx
+                 :book (get books book-idx)
                  :verse-idx verse-idx
                  :verse-cnt (first verse-cnt)}
                 (assoc-if :subtitle (contains? subtitle idx))
