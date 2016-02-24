@@ -83,3 +83,20 @@
             (recur (conj acc data) next-refs)
             (throw (js/Error. (str "Invalid chapter-ref " chapter-ref ".")))))
         acc))))
+
+(defn verse
+  ([{b "B" :as all} verse-refs]
+    (let [partition-size (:partition-size b)]
+      (loop [acc []
+             verse-refs (seq verse-refs)]
+        (if verse-refs
+          (let [verse-ref (first verse-refs)
+                next-refs (next verse-refs)
+                idx verse-ref
+                r-idx (quot idx partition-size)
+                r-id (str "V" (if (< r-idx 10) "0" "") r-idx)
+                res (get all r-id)
+                v-idx (rem idx partition-size)
+                data (get res v-idx)]
+            (recur (conj acc {:content data}) next-refs))
+          acc)))))

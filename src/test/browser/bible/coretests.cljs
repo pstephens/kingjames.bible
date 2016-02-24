@@ -110,3 +110,40 @@
         (is (= [50 52 54] (vec (map :idx (<? (b/chapter [[:Exodus 1] [:Exodus 3] [:Exodus 5]]))))))
         (is (thrown? js/Error (<? (b/chapter [[:Judas 3]]))))
         (done)))))
+
+(deftest verse
+  (testing "Pure functional model"
+    (let [gen {:id :Geneis
+               :idx 0
+               :chapter-cnt 2
+               :chapter-idx 0}
+          exo {:id :Exodus
+               :idx 1
+               :chapter-cnt 3
+               :chapter-idx 2}
+          b {:books [gen exo]
+             :chapters
+              [{:idx 0 :book gen :verse-cnt 4 :verse-idx 0}
+               {:idx 1 :book gen :verse-cnt 5 :verse-idx 4}
+               {:idx 2 :book exo :verse-cnt 3 :verse-idx 9}
+               {:idx 3 :book exo :verse-cnt 1 :verse-idx 12}
+               {:idx 4 :book exo :verse-cnt 2 :verse-idx 13}]
+             :partition-size 2}
+          v0 ["V1" "v2"]
+          v1 ["V3" "v4"]
+          v2 ["V5" "v6"]
+          v3 ["V7" "v8"]
+          v4 ["V9" "v10"]
+          v5 ["V11" "v12"]
+          v6 ["V13" "v14"]
+          v7 ["V15" "v16"]
+          m {"B"   b
+             "V00" v0
+             "V01" v1
+             "V02" v2
+             "V03" v3
+             "V04" v4
+             "V05" v5
+             "V06" v6
+             "V07" v7}]
+      (is (= "v6" (get-in (b/verse m [5]) [0 :content]))))))
