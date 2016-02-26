@@ -41,7 +41,9 @@
       (is (= 5 (count (get-in m [:postscript]))) "Postscript chapter count")
       (is (= false (contains? (get-in m [:postscript]) 0)) "Gen 1 does not have postscript")
       (is (= false (contains? (get-in m [:postscript]) 517)) "Psalm 40 does not have postscript")
-      (is (= true (contains? (get-in m [:postscript]) 1132)) "Phil  does have postscript"))))
+      (is (= true (contains? (get-in m [:postscript]) 1132)) "Phil  does have postscript"))
+    (testing "Partition size"
+      (is (number? (get-in m [:partition-size]))))))
 
 (deftest normalized->persisted-verses
   (let [m (io/normalized->persisted-verses staggs-model)]

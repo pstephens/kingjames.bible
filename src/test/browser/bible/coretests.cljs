@@ -146,4 +146,11 @@
              "V05" v5
              "V06" v6
              "V07" v7}]
-      (is (= "v6" (get-in (b/verse m [5]) [0 :content]))))))
+      (is (= "v6" (get-in (b/verse m [5]) [0 :content])))))
+
+  (testing "I/O against resource"
+    (async done
+      (go
+        (is (= "And God said, Let there be a firmament in the midst of the waters, and let it divide the waters from the waters."
+          (get-in (<? (b/verse [5])) [0 :content])))
+        (done)))))

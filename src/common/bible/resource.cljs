@@ -21,7 +21,6 @@
 
 (def node-crypto (js/require "crypto"))
 
-(def verse-partition-size 781)
 (def hash-len 12)
 
 (defn compute-hash [buf]
@@ -60,8 +59,8 @@
     (encode-data "B"))
    (->> m
     (io/normalized->persisted-verses)
-    (partition-all verse-partition-size)
-    (map-indexed #(encode-data (format-name "V" %1 2) %2))
+    (partition-all io/verse-partition-size)
+    (map-indexed #(encode-data (format-name "V" %1 2) (vec %2)))
     (vec))])
 
 (defn build-resources [m]

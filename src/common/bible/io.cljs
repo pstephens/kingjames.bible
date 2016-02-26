@@ -14,6 +14,8 @@
 
 (ns common.bible.io)
 
+(def verse-partition-size 781)
+
 (defn- get-chapter-count-for-books [m]
   (->> m
     (map :chapters)
@@ -37,7 +39,8 @@
   {:books (get-chapter-count-for-books m)
    :chapters (get-verse-count-for-chapters m)
    :subtitle (filtered-chapter-indexes-to-set m :subtitle)
-   :postscript (filtered-chapter-indexes-to-set m :postscript)})
+   :postscript (filtered-chapter-indexes-to-set m :postscript)
+   :partition-size verse-partition-size})
 
 (defn normalized->persisted-verses [m]
   (->> m

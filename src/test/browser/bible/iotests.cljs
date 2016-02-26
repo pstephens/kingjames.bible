@@ -68,6 +68,8 @@
 (deftest resources
   (async done
     (go
+      (testing "B-Partition size"
+        (is (number? (get-in (<! (io/resources ["B"])) ["B" :partition-size]))))
       (testing "B-Book model"
         (is (= 66 (count (get-in (<! (io/resources ["B"])) ["B" :books]))))
         (is (= :Genesis (get-in (<! (io/resources ["B"])) ["B" :books 0 :id])))

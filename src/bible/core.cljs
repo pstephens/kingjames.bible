@@ -84,7 +84,31 @@
             (throw (js/Error. (str "Invalid chapter-ref " chapter-ref ".")))))
         acc))))
 
+(defn parse-verse-ref [b r]
+  (cond
+    (integer? r)
+    r
+
+    :else nil))
+
+(defn format-verse-res-id [partition-idx]
+  (str "V" (if (< partition-idx 10) "0" "") partition-idx))
+
 (defn verse
+  ([verse-refs]
+    (go
+      (try
+        (let [{b "B"} (<? (io/resources ["B"]))
+              partition-size (:partition-size b)
+              indexes (->> verse-refs (map #(parse-verse-ref b %)) (vec))
+              unique-indexes (set indexes)
+              partition-indexes (->> unique-indexes (map #(quot % partition-size)) (set))
+              res-ids (->> partition-indexes (map format-verse-res-id) (vec))
+              res-ids (conj res-ids "B")
+              res (<? (io/resources res-ids))]
+          (verse res indexes))
+        (catch js/Error e
+          e))))
   ([{b "B" :as all} verse-refs]
     (let [partition-size (:partition-size b)]
       (loop [acc []

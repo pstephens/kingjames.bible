@@ -176,7 +176,8 @@
   (let [books (transform-books (:books v))
         chapters (transform-chapters (:chapters v) books (:subtitle v) (:postscript v))]
     {:books books
-     :chapters chapters}))
+     :chapters chapters
+     :partition-size (:partition-size v)}))
 
 (defn ^:private split-pending [resids cache eventloop]
   (loop [ret {}
