@@ -17,7 +17,8 @@
     [cljs.nodejs :as nodejs]
     [biblecli.commands.normalize]
     [biblecli.commands.prepare]
-    [biblecli.commands.serve]))
+    [biblecli.commands.serve]
+    [biblecli.commands.staticpages]))
 
 (nodejs/enable-util-print!)
 
@@ -26,7 +27,8 @@
 (def commands
   {"normalize" biblecli.commands.normalize/normalize
    "prepare"   biblecli.commands.prepare/prepare!
-   "serve"     biblecli.commands.serve/serve})
+   "serve"     biblecli.commands.serve/serve
+   "static"    biblecli.commands.staticpages/prepare!})
 
 (defn- main [command & args]
   (try
