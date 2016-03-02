@@ -23,65 +23,47 @@
   [(ref 0) nil nil])
 
 (defn book
-  ([book-refs]
+  ([book-idxs]
     (go
       (try
         (let [{book-res "B"} (<? (io/resources ["B"]))]
-          (book book-res book-refs))
+          (book book-res book-idxs))
         (catch js/Error e
           e))))
 
-  ([book-res book-refs]
+  ([book-res book-idxs]
     (loop [acc []
-           book-refs (seq book-refs)]
-      (if book-refs
-        (let [book-ref (first book-refs)
-              next-refs (next book-refs)
-              idx (if (keyword? book-ref)
-                    (bible.meta/book-id-to-idx book-ref)
-                    book-ref)
-              data (get-in book-res [:books idx])]
+           book-idxs (seq book-idxs)]
+      (if book-idxs
+        (let [book-idx (first book-idxs)
+              next-idxs (next book-idxs)
+              data (get-in book-res [:books book-idx])]
           (if data
             (recur
               (conj acc data)
-              next-refs)
-            (throw (js/Error. (str "Invalid book-ref " book-ref ".")))))
+              next-idxs)
+            (throw (js/Error. (str "Invalid book-idx " book-idx ".")))))
         acc))))
 
-(defn parse-chapter-ref [res r]
-  (cond
-    (integer? r)
-    r
-
-    (and (vector? r) (= 2 (count r)))
-    (let [[book-id  chapter-num] r
-           book-idx (bible.meta/book-id-to-idx book-id)
-           {chapter-cnt :chapter-cnt
-            chapter-idx :chapter-idx} (get-in res [:books book-idx])]
-      (if (and (>= chapter-num 1) (<= chapter-num chapter-cnt))
-        (+ chapter-idx chapter-num -1)
-        nil))))
-
 (defn chapter
-  ([chapter-refs]
+  ([chapter-idxs]
     (go
       (try
         (let [{res "B"} (<? (io/resources ["B"]))]
-          (chapter res chapter-refs))
+          (chapter res chapter-idxs))
         (catch js/Error e
           e))))
 
-  ([res chapter-refs]
+  ([res chapter-idxs]
     (loop [acc []
-           chapter-refs (seq chapter-refs)]
-      (if chapter-refs
-        (let [chapter-ref (first chapter-refs)
-              next-refs (next chapter-refs)
-              idx (parse-chapter-ref res chapter-ref)
-              data (get-in res [:chapters idx])]
+           chapter-idxs (seq chapter-idxs)]
+      (if chapter-idxs
+        (let [chapter-idx (first chapter-idxs)
+              next-idxs (next chapter-idxs)
+              data (get-in res [:chapters chapter-idx])]
           (if data
-            (recur (conj acc data) next-refs)
-            (throw (js/Error. (str "Invalid chapter-ref " chapter-ref ".")))))
+            (recur (conj acc data) next-idxs)
+            (throw (js/Error. (str "Invalid chapter-idx " chapter-idx ".")))))
         acc))))
 
 (defn parse-verse-ref [b r]

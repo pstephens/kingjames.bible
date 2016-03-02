@@ -43,23 +43,17 @@
       (is (thrown? js/Error (b/book m [-1])))
       (is (thrown? js/Error (b/book m [3])))
       (is (= [:Genesis :Exodus :Leviticus] (vec (map :id (b/book m [0 1 2])))))
-      (is (= [:Leviticus :Genesis :Exodus] (vec (map :id (b/book m [2 0 1])))))
-
-      (is (= :Leviticus (get-in (b/book m [:Leviticus]) [0 :id])))
-      (is (= :Exodus (get-in (b/book m [:Exodus]) [0 :id])))
-      (is (thrown? js/Error (b/book m [:Foo])))
-      (is (= [:Genesis :Exodus :Leviticus] (vec (map :id (b/book m [:Genesis :Exodus :Leviticus])))))
-      (is (= [:Leviticus :Genesis :Exodus] (vec (map :id (b/book m [:Leviticus :Genesis :Exodus])))))))
+      (is (= [:Leviticus :Genesis :Exodus] (vec (map :id (b/book m [2 0 1])))))))
 
   (testing "I/O against resource"
     (async done
       (go
         (is (= :Genesis (get-in (<? (b/book [0])) [0 :id])))
-        (is (= 65 (get-in (<? (b/book [:Revelation])) [0 :idx])))
-        (is (= 150 (get-in (<? (b/book [:Psalms])) [0 :chapter-cnt])))
-        (is (= 90 (get-in (<? (b/book [:Leviticus])) [0 :chapter-idx])))
-        (is (= [:Job :Jeremiah :Matthew] (vec (map :id (<? (b/book [:Job :Jeremiah :Matthew]))))))
-        (is (thrown? js/Error (<? (b/book [:Foo :Matthew]))))
+        (is (= 65 (get-in (<? (b/book [65])) [0 :idx])))
+        (is (= 150 (get-in (<? (b/book [18])) [0 :chapter-cnt])))
+        (is (= 90 (get-in (<? (b/book [2])) [0 :chapter-idx])))
+        (is (= [:Job :Jeremiah :Matthew] (vec (map :id (<? (b/book [17 23 39]))))))
+        (is (thrown? js/Error (<? (b/book [75 39]))))
         (done)))))
 
 (deftest chapter
@@ -85,30 +79,17 @@
       (is (thrown? js/Error (b/chapter m [5])))
       (is (thrown? js/Error (b/chapter m ["John"])))
       (is (= [0 2 3] (vec (map :idx (b/chapter m [0 2 3])))))
-      (is (= [4 3 1] (vec (map :idx (b/chapter m [4 3 1])))))
-
-      (is (= 0 (get-in (b/chapter m [[:Genesis 1]]) [0 :idx])))
-      (is (= 3 (get-in (b/chapter m [[:Exodus 2]]) [0 :idx])))
-      (is (thrown? js/Error (b/chapter m [[:Genesis -1]])))
-      (is (thrown? js/Error (b/chapter m [[:Genesis 0]])))
-      (is (thrown? js/Error (b/chapter m [[:Genesis 3]])))
-      (is (thrown? js/Error (b/chapter m [[:Exodus 0]])))
-      (is (thrown? js/Error (b/chapter m [[:Exodus 4]])))
-      (is (thrown? js/Error (b/chapter m [[:Exodus]])))
-      (is (thrown? js/Error (b/chapter m [[:Exodus 3 10]])))
-      (is (thrown? js/Error (b/chapter m [[:Foo 1]])))
-      (is (= [0 2 3] (vec (map :idx (b/chapter m [[:Genesis 1] [:Exodus 1] [:Exodus 2]])))))
-      (is (= [4 3 1] (vec (map :idx (b/chapter m [[:Exodus 3] [:Exodus 2] [:Genesis 2]])))))))
+      (is (= [4 3 1] (vec (map :idx (b/chapter m [4 3 1])))))))
 
   (testing "I/O against resource"
     (async done
       (go
         (is (= 0 (get-in (<? (b/chapter [0])) [0 :idx])))
-        (is (= 13 (get-in (<? (b/chapter [[:Job 2]])) [0 :verse-cnt])))
-        (is (= 56 (get-in (<? (b/chapter [[:Genesis 3]])) [0 :verse-idx])))
-        (is (= :Jude (get-in (<? (b/chapter [[:Jude 1]])) [0 :book :id])))
-        (is (= [50 52 54] (vec (map :idx (<? (b/chapter [[:Exodus 1] [:Exodus 3] [:Exodus 5]]))))))
-        (is (thrown? js/Error (<? (b/chapter [[:Judas 3]]))))
+        (is (= 13 (get-in (<? (b/chapter [437])) [0 :verse-cnt])))
+        (is (= 56 (get-in (<? (b/chapter [2])) [0 :verse-idx])))
+        (is (= :Jude (get-in (<? (b/chapter [1166])) [0 :book :id])))
+        (is (= [50 52 54] (vec (map :idx (<? (b/chapter [50 52 54]))))))
+        (is (thrown? js/Error (<? (b/chapter [1300]))))
         (done)))))
 
 (deftest verse
