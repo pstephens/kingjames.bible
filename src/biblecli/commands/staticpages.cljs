@@ -139,13 +139,23 @@
     :Revelation     "Revelation"}]
     (get m book-id)))
 
-(defn chapter-name [book-id chap-num chap-count]
-  (if (> chap-count 1)
-    (str (book-name book-id) " " chap-num)
-    (book-name book-id)))
+(defn chapter-name
+  ([book-id chap-num chap-count]
+    (if (> chap-count 1)
+      (str (book-name book-id) " " chap-num)
+      (book-name book-id)))
+  ([{book-id :book-id
+     chap-num :num
+     chap-cnt :chap-cnt}]
+    (chapter-name book-id chap-num chap-cnt)))
 
-(defn rel-url [book-id chap-num chap-count]
-  (s/replace (chapter-name book-id chap-num chap-count) " " "-"))
+(defn rel-url
+  ([book-id chap-num chap-count]
+    (s/replace (chapter-name book-id chap-num chap-count) " " "-"))
+  ([{book-id :book-id
+     chap-num :num
+     chap-cnt :chap-cnt}]
+    (rel-url book-id chap-num chap-cnt)))
 
 (defn toc-book [b]
   [:p {:class "tocp"}
@@ -174,6 +184,37 @@
           (drop 39)
           (map toc-book))]]))
 
+(defn chapters [m]
+  (->> m
+    (mapcat
+      (fn [b]
+        (map
+          (fn [ch]
+            (merge ch
+              {:book-id (:id b)
+               :book-num (:num b)
+               :chap-cnt (count (:chapters b))}))
+          (:chapters b))))))
+
+(defn verse [i ch v]
+  [:p {:class "foo"} v])
+
+(defn chapter
+  [{book-id :book-id
+    chap-num :num
+    chap-cnt :chap-cnt
+    verses :verses
+    :as ch}]
+  (html
+    [:html
+      [:head
+        [:title (str (chapter-name ch) " - The King James Bible")]
+        [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
+      [:body
+        [:h2 {:class "chap"}
+          (chapter-name ch)]
+        (map-indexed #(verse %1 ch %2) verses)]]))
+
 (defn write! [dir filename content]
   (let [filepath (.join node-path dir filename)
         buff (js/Buffer content "utf8")]
@@ -182,4 +223,6 @@
 (defn prepare! [parser src output-dir]
   (let [m (parse parser src)]
     (write! output-dir "styles.css" (style))
-    (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m))))
+    (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m))
+    (doseq [ch (chapters m)]
+      (write! output-dir (rel-url ch) (chapter ch)))))
