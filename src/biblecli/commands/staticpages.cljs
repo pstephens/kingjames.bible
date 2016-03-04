@@ -196,8 +196,39 @@
                :chap-cnt (count (:chapters b))}))
           (:chapters b))))))
 
+(def ^:private beginbracket [:beginbracket "["])
+(def ^:private endbracket [:endbracket "]"])
+(def ^:private whitespace [:whitespace " "])
+
+(defn subtitle? [i {subtitle :subtitle}]
+  (and subtitle (= i 0)))
+
+(defn postscript? [i {postscript :postscript verses :verses}]
+  (and postscript (= i (dec (count verses)))))
+
+(defn verse-class [i ch]
+  (cond
+    (subtitle? i ch) "intro"
+    (postscript? i ch) "ps"
+    :else "verse"))
+
+(defn tokenize [content]
+  (->>
+    (re-seq #"\s+|[,\[\].!?;:,'()-]|[A-Za-z]+" content)
+    (map
+      #(cond
+        (re-matches #"\s+" %) whitespace
+        (re-matches #"^[A-Z]+$" %) [:uppercase %]
+        (re-matches #"^[A-Za-z]+$" %) [:mixed %]
+        (re-matches #"\[" %) beginbracket
+        (re-matches #"\]" %) endbracket
+        (re-matches #"[,.!?;:,'(\)-]" %) [:punctuation %]
+        :else (throw (js/Error. "Invalid token."))))
+    (vec)))
+
 (defn verse [i ch v]
-  [:p {:class "foo"} v])
+  (let [tokens (tokenize v)]
+    [:p {:class (verse-class i ch)} v]))
 
 (defn chapter
   [{book-id :book-id

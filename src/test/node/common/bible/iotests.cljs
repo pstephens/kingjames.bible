@@ -38,7 +38,7 @@
       (is (= true (contains? (get-in m [:subtitle]) 517)) "Psalm 40 is subtitled")
       (is (= false (contains? (get-in m [:subtitle]) 1132)) "Phil is not subtitled"))
     (testing "Chapter with postscript"
-      (is (= 5 (count (get-in m [:postscript]))) "Postscript chapter count")
+      (is (= 14 (count (get-in m [:postscript]))) "Postscript chapter count")
       (is (= false (contains? (get-in m [:postscript]) 0)) "Gen 1 does not have postscript")
       (is (= false (contains? (get-in m [:postscript]) 517)) "Psalm 40 does not have postscript")
       (is (= true (contains? (get-in m [:postscript]) 1132)) "Phil  does have postscript"))
@@ -47,4 +47,4 @@
 
 (deftest normalized->persisted-verses
   (let [m (io/normalized->persisted-verses staggs-model)]
-    (is (= (+ 31102 5 115) (count m)))))
+    (is (= (+ 31102 14 115) (count m)))))

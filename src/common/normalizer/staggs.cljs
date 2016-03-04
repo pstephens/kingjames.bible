@@ -87,7 +87,7 @@
 
 (defn transform-verse [s]
   (let [[_ book ch verse content] (re-matches #"\s+(\w+)\s+(\d+)\:(\d+)\s+(.*)" s)
-        [_ subtitle cont postscript] (re-matches #"(?:<<([^>]*)>>)?([^<]*)(?:<<\[([^\]]*)\]>>\s*)?" (str content))]
+        [_ subtitle cont postscript] (re-matches #"(?:^\s*<<(.*)>>)?([^<]*)(?:<<\[(.*)\]>>\s*$)?" (str content))]
     {:bookId (book-name-map book)
      :chapterNum (int ch)
      :content (string/trim (str cont))
