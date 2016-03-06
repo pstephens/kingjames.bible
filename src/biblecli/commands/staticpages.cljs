@@ -24,6 +24,42 @@
 
 (defn style []
 "
+body {
+  background-color: #EEE;
+}
+a:link, a:visited {
+  text-decoration: none;
+  color: #33f;
+}
+a:hover, a:active {
+  text-decoration: underline;
+  color: #77f;
+}
+.content {
+  width: 600px;
+  margin: 25px auto 15px auto;
+  padding: 25px;
+  border-left: #BBB;
+  border-right: #BBB;
+  background-color: #FFFFFF;
+  -webkit-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
+  -moz-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
+  box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
+}
+.menu {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.menu2 {
+  font-family: Arial, sans-serif;
+  position: fixed;
+  background-color: #DDD;
+  border-right: 1px solid #BBB;
+  border-bottom: 1px solid #BBB;
+  padding: 6px;
+  border-bottom-right-radius: 4px;
+}
 .ref {
   display: none;
 }
@@ -158,8 +194,8 @@
     (rel-url book-id chap-num chap-cnt)))
 
 (defn toc-book [b]
-  [:p {:class "tocp"}
-    [:span {:class "chapter"} (book-name (:id b))]
+  [:p.tocp {:id (book-name (:id b))}
+    [:span.chapter (book-name (:id b))]
     " "
     (->> (:chapters b)
       (map (fn [ch]
@@ -172,17 +208,18 @@
         [:title "The King James Bible"]
         [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
       [:body
-        [:h1 "The King James Bible"]
+        [:div.content
+          [:h1 "The King James Bible"]
 
-        [:h2 "The Old Testament"]
-        (->> m
-          (take 39)
-          (map toc-book))
+          [:h2 "The Old Testament"]
+          (->> m
+            (take 39)
+            (map toc-book))
 
-        [:h2 "The New Testament"]
-        (->> m
-          (drop 39)
-          (map toc-book))]]))
+          [:h2 "The New Testament"]
+          (->> m
+            (drop 39)
+            (map toc-book))]]]))
 
 (defn chapters [m]
   (->> m
@@ -194,7 +231,8 @@
               {:book-id (:id b)
                :book-num (:num b)
                :chap-cnt (count (:chapters b))}))
-          (:chapters b))))))
+          (:chapters b))))
+    (vec)))
 
 (def ^:private beginbracket [:beginbracket "["])
 (def ^:private endbracket [:endbracket "]"])
@@ -262,21 +300,42 @@
       (number-markup i ch)
       (tokens-to-markup tokens)]))
 
+(defn chapter-url [ch inner]
+  (if ch
+    [:a {:href (rel-url ch)} inner]
+    inner))
+
 (defn chapter
   [{book-id :book-id
     chap-num :num
     chap-cnt :chap-cnt
     verses :verses
-    :as ch}]
+    :as ch}
+    prev-ch
+    next-ch]
   (html
     [:html
       [:head
         [:title (str (chapter-name ch) " - The King James Bible")]
         [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
       [:body
-        [:h2 {:class "chap"}
-          (chapter-name ch)]
-        (map-indexed #(verse %1 ch %2) verses)]]))
+        [:body.content
+          [:div.menu
+            [:div.menu2
+              (chapter-url prev-ch "<<")
+              " "
+              (chapter-url next-ch ">>")
+              " "
+              [:a {:href (str ".#" (book-name book-id))} (chapter-name ch)]]]
+          [:h1.chap
+            (chapter-name ch)]
+          (map-indexed #(verse %1 ch %2) verses)]]]))
+
+(defn next-chapter [all-chapters i]
+  (get all-chapters (inc i)))
+
+(defn prev-chapter [all-chapters i]
+  (get all-chapters (dec i)))
 
 (defn write! [dir filename content]
   (let [filepath (.join node-path dir filename)
@@ -284,8 +343,16 @@
     (.writeFileSync node-fs filepath buff)))
 
 (defn prepare! [parser src output-dir]
-  (let [m (parse parser src)]
+  (let [m (parse parser src)
+        all-chapters (chapters m)]
     (write! output-dir "styles.css" (style))
     (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m))
-    (doseq [ch (chapters m)]
-      (write! output-dir (rel-url ch) (chapter ch)))))
+    (dorun
+      (map-indexed
+        #(write!
+          output-dir
+          (rel-url %2)
+          (chapter %2
+            (prev-chapter all-chapters %1)
+            (next-chapter all-chapters %1)))
+        all-chapters))))
