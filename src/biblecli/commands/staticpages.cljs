@@ -223,12 +223,44 @@
         (re-matches #"\[" %) beginbracket
         (re-matches #"\]" %) endbracket
         (re-matches #"[,.!?;:,'(\)-]" %) [:punctuation %]
-        :else (throw (js/Error. "Invalid token."))))
-    (vec)))
+        :else (throw (js/Error. "Invalid token."))))))
+
+(defn tokens-to-markup
+  ([tokens acc]
+    (let [tokens (seq tokens)]
+      (if-not tokens
+        [nil (reverse acc)]
+        (let [[tok-type tok-val] (first tokens)
+              remaining (rest tokens)]
+          (case tok-type
+            :whitespace (recur remaining (conj acc " "))
+            :uppercase (recur remaining (conj acc tok-val))
+            :mixed (recur remaining (conj acc tok-val))
+            :punctuation (recur remaining (conj acc tok-val))
+            :beginbracket
+              (let [[remaining part] (tokens-to-markup remaining '())]
+                (recur remaining (conj acc [:i part])))
+            :endbracket
+              [remaining (reverse acc)]
+            (throw (js/Error. "Invalid token type.")))))))
+  ([tokens]
+    (let [[_ acc] (tokens-to-markup tokens '())]
+      acc)))
+
+(defn number-markup [i {subtitle :subtitle :as ch}]
+  (cond
+    (postscript? i ch) ""
+    (subtitle? i ch) ""
+    :else
+    (let [delta (if subtitle 0 1)
+          verse-num (+ i delta)]
+      (str verse-num " "))))
 
 (defn verse [i ch v]
   (let [tokens (tokenize v)]
-    [:p {:class (verse-class i ch)} v]))
+    [:p {:class (verse-class i ch)}
+      (number-markup i ch)
+      (tokens-to-markup tokens)]))
 
 (defn chapter
   [{book-id :book-id

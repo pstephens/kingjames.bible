@@ -85,12 +85,20 @@
   "Jude" :Jude
   "Re"   :Revelation})
 
+(defn ^:private cleanup-verse-content [content]
+  (->
+    (str content)
+    (string/replace
+      #"ALEPH. |BETH. |GIMEL. |DALETH. |HE. |VAU. |ZAIN. |CHETH. |TETH. |JOD. |CAPH. |LAMED. |MEM. |NUN. |SAMECH. |AIN. |PE. |TZADDI. |KOPH. |RESH. |SCHIN. |TAU. "
+      "")
+    (string/trim)))
+
 (defn transform-verse [s]
   (let [[_ book ch verse content] (re-matches #"\s+(\w+)\s+(\d+)\:(\d+)\s+(.*)" s)
         [_ subtitle cont postscript] (re-matches #"(?:^\s*<<(.*)>>)?([^<]*)(?:<<\[(.*)\]>>\s*$)?" (str content))]
     {:bookId (book-name-map book)
      :chapterNum (int ch)
-     :content (string/trim (str cont))
+     :content (cleanup-verse-content cont)
      :subtitle subtitle
      :postscript postscript}))
 
