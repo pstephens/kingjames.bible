@@ -1,3 +1,17 @@
+;;;;   Copyright 2015 Peter Stephens. All Rights Reserved.
+;;;;
+;;;;   Licensed under the Apache License, Version 2.0 (the "License");
+;;;;   you may not use this file except in compliance with the License.
+;;;;   You may obtain a copy of the License at
+;;;;
+;;;;       http://www.apache.org/licenses/LICENSE-2.0
+;;;;
+;;;;   Unless required by applicable law or agreed to in writing, software
+;;;;   distributed under the License is distributed on an "AS IS" BASIS,
+;;;;   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;;;;   See the License for the specific language governing permissions and
+;;;;   limitations under the License.
+
 (ns common.normalizer.staggs
   (:require [clojure.string :as string]
             [common.bible.core]
@@ -71,12 +85,20 @@
   "Jude" :Jude
   "Re"   :Revelation})
 
+(defn ^:private cleanup-verse-content [content]
+  (->
+    (str content)
+    (string/replace
+      #"ALEPH. |BETH. |GIMEL. |DALETH. |HE. |VAU. |ZAIN. |CHETH. |TETH. |JOD. |CAPH. |LAMED. |MEM. |NUN. |SAMECH. |AIN. |PE. |TZADDI. |KOPH. |RESH. |SCHIN. |TAU. "
+      "")
+    (string/trim)))
+
 (defn transform-verse [s]
   (let [[_ book ch verse content] (re-matches #"\s+(\w+)\s+(\d+)\:(\d+)\s+(.*)" s)
-        [_ subtitle cont postscript] (re-matches #"(?:<<([^>]*)>>)?([^<]*)(?:<<\[([^\]]*)\]>>\s*)?" (str content))]
+        [_ subtitle cont postscript] (re-matches #"(?:^\s*<<(.*)>>)?([^<]*)(?:<<\[(.*)\]>>\s*$)?" (str content))]
     {:bookId (book-name-map book)
      :chapterNum (int ch)
-     :content (string/trim (str cont))
+     :content (cleanup-verse-content cont)
      :subtitle subtitle
      :postscript postscript}))
 

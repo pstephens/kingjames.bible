@@ -1,3 +1,17 @@
+;;;;   Copyright 2015 Peter Stephens. All Rights Reserved.
+;;;;
+;;;;   Licensed under the Apache License, Version 2.0 (the "License");
+;;;;   you may not use this file except in compliance with the License.
+;;;;   You may obtain a copy of the License at
+;;;;
+;;;;       http://www.apache.org/licenses/LICENSE-2.0
+;;;;
+;;;;   Unless required by applicable law or agreed to in writing, software
+;;;;   distributed under the License is distributed on an "AS IS" BASIS,
+;;;;   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;;;;   See the License for the specific language governing permissions and
+;;;;   limitations under the License.
+
 (ns test.node.common.normalizer.coretests
   (:require
     [cljs.test :refer-macros [deftest testing is]]
@@ -28,14 +42,19 @@
       (is (= "The grace of our Lord Jesus Christ [be] with your spirit. Amen."
         (get-in m [56 :chapters 0 :verses 24])) "verse content Phm 1:25")
       (is (= "The grace of our Lord Jesus Christ [be] with you all. Amen."
-        (get-in m [65 :chapters 21 :verses 20])) "verse content Rev 22:21"))
+        (get-in m [65 :chapters 21 :verses 20])) "verse content Rev 22:21")
+      (is (= "To God only wise, [be] glory through Jesus Christ for ever. Amen."
+        (get-in m [44 :chapters 15 :verses 26]))))
     (testing "Verse Subtitle"
       (is (= false (get-in m [0 :chapters 0 :subtitle])) "subtitle? Gen 1")
       (is (= "To the chief Musician, A Psalm of David."
         (get-in m [18 :chapters 39 :verses 0])) "subtitle Ps 40")
-      (is (= true (get-in m [18 :chapters 39 :subtitle])) "subtitle? Ps 40")
+      (is (= true (get-in m [18 :chapters 39 :subtitle])) "subtitle? Ps 40"))
     (testing "Verse Postscript"
       (is (= false (get-in m [0 :chapters 0 :postscript])) "postscript? Gen 1")
       (is (= "Written from Rome to Philemon, by Onesimus a servant."
         (get-in m [56 :chapters 0 :verses 25])) "postscript Phil 1")
-      (is (= true (get-in m [56 :chapters 0 :postscript])) "postscript? Phil 1")))))
+      (is (= true (get-in m [56 :chapters 0 :postscript])) "postscript? Phil 1")
+      (is (= "Written to the Romans from Corinthus, [and sent] by Phebe servant of the church at Cenchrea."
+        (get-in m [44 :chapters 15 :verses 27])))
+      (is (= true (get-in m [44 :chapters 15 :postscript]))))))

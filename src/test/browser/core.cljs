@@ -12,30 +12,33 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns test.node.unittests
+(ns test.browser.core
   (:require
-    [cljs.nodejs :as nodejs]
-    [cljs.test :refer-macros [run-tests] :refer [successful?]]
-    [test.node.common.bible.coretests]
-    [test.node.common.bible.iotests]
-    [test.node.common.normalizer.coretests]))
+    [cljs.test :refer-macros [run-tests deftest is] :as test]
+    [test.browser.bible.coretests]
+    [test.browser.bible.iotests]))
 
-(nodejs/enable-util-print!)
+(enable-console-print!)
 
-(def process nodejs/process)
+(def colors {
+  :red    "\u001b[31m"
+  :green  "\u001b[32m"
+  :yellow "\u001b[33m"
+  :none   "\u001b[0m"
+  })
 
-(defn- main []
-  (run-tests 'test.node.common.normalizer.coretests
-             'test.node.common.bible.coretests
-             'test.node.common.bible.iotests))
+(defn ^:export run []
+  (run-tests
+    'test.browser.bible.coretests
+    'test.browser.bible.iotests))
 
-(defmethod cljs.test/report [:cljs.test/default :end-run-tests] [m]
-  (if (successful? m)
+(defmethod test/report [:cljs.test/default :end-run-tests] [m]
+  (if (test/successful? m)
     (do
-      (println "Success!")
-      (.exit process 0))
+      (println (str (colors :green) "Success!" (colors :none)))
+      (println "~~EXIT(0)~~"))
     (do
-      (println "FAIL")
-      (.exit process 1))))
+      (println (str (colors :red) "FAIL" (colors :none)))
+      (println "~~EXIT(1)~~"))))
 
-(set! *main-cli-fn* main)
+(run)

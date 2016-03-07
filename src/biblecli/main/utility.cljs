@@ -1,4 +1,4 @@
-;;;;   Copyright 2015 Peter Stephens. All Rights Reserved.
+;;;;   Copyright 2016 Peter Stephens. All Rights Reserved.
 ;;;;
 ;;;;   Licensed under the Apache License, Version 2.0 (the "License");
 ;;;;   you may not use this file except in compliance with the License.
@@ -12,18 +12,10 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns common.normalizer.filesystem
-  (:require [cljs.nodejs :as nodejs]))
+(ns biblecli.main.utility)
 
-(def node-fs (nodejs/require "fs"))
+(def root-path (atom ""))
 
-(defprotocol FileSystem
-  (read-text [fs path])
-  (write-text [fs path text]))
+(defn get-root-path [] @root-path)
 
-(deftype NodeFs []
-  FileSystem
-  (read-text [fs path]
-    (.readFileSync node-fs path (js-obj "encoding" "utf8")))
-  (write-text [fs path text]
-    (.writeFileSync node-fs path text (js-obj "encoding" "utf8"))))
+(defn set-root-path! [path] (reset! root-path path))

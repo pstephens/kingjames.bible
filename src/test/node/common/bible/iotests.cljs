@@ -1,3 +1,17 @@
+;;;;   Copyright 2015 Peter Stephens. All Rights Reserved.
+;;;;
+;;;;   Licensed under the Apache License, Version 2.0 (the "License");
+;;;;   you may not use this file except in compliance with the License.
+;;;;   You may obtain a copy of the License at
+;;;;
+;;;;       http://www.apache.org/licenses/LICENSE-2.0
+;;;;
+;;;;   Unless required by applicable law or agreed to in writing, software
+;;;;   distributed under the License is distributed on an "AS IS" BASIS,
+;;;;   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+;;;;   See the License for the specific language governing permissions and
+;;;;   limitations under the License.
+
 (ns test.node.common.bible.iotests
   (:require [common.bible.io :as io]
             [cljs.test :refer-macros [deftest testing is]]
@@ -24,11 +38,13 @@
       (is (= true (contains? (get-in m [:subtitle]) 517)) "Psalm 40 is subtitled")
       (is (= false (contains? (get-in m [:subtitle]) 1132)) "Phil is not subtitled"))
     (testing "Chapter with postscript"
-      (is (= 5 (count (get-in m [:postscript]))) "Postscript chapter count")
+      (is (= 14 (count (get-in m [:postscript]))) "Postscript chapter count")
       (is (= false (contains? (get-in m [:postscript]) 0)) "Gen 1 does not have postscript")
       (is (= false (contains? (get-in m [:postscript]) 517)) "Psalm 40 does not have postscript")
-      (is (= true (contains? (get-in m [:postscript]) 1132)) "Phil  does have postscript"))))
+      (is (= true (contains? (get-in m [:postscript]) 1132)) "Phil  does have postscript"))
+    (testing "Partition size"
+      (is (number? (get-in m [:partition-size]))))))
 
 (deftest normalized->persisted-verses
   (let [m (io/normalized->persisted-verses staggs-model)]
-    (is (= (+ 31102 5 115) (count m)))))
+    (is (= (+ 31102 14 115) (count m)))))
