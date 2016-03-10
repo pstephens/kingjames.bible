@@ -24,6 +24,7 @@ function ContentTypeFromKey($key)
     switch -regex ($key) {
         "\.html$" { "text/html" }
         "\.css$" { "text/css" }
+        "\.js$" { "text/javascript" }
         "^[^.]+$" { "text/html" }
         default { throw "Invalid file key: $key" }
     }
