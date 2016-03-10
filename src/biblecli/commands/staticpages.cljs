@@ -23,9 +23,9 @@
 (def node-path (js/require "path"))
 
 (defn style []
-"
-body {
-  background-color: #EEE;
+"body {
+  background-color: #DDD;
+  overflow-y: scroll;
 }
 a:link, a:visited {
   text-decoration: none;
@@ -36,6 +36,7 @@ a:hover, a:active {
   color: #77f;
 }
 .content {
+  font-size: 125%;
   width: 600px;
   margin: 25px auto 15px auto;
   padding: 25px;
@@ -47,18 +48,21 @@ a:hover, a:active {
   box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
 }
 .menu {
-  position: absolute;
-  left: 0;
-  top: 0;
+  position: fixed;
 }
 .menu2 {
+  white-space: nowrap;
   font-family: Arial, sans-serif;
-  position: fixed;
-  background-color: #DDD;
-  border-right: 1px solid #BBB;
+  font-size: 80%;
+  position: absolute;
+  right: 24px;
+  background-color: #FFFFFF;
+  border-left: 1px solid #BBB;
   border-bottom: 1px solid #BBB;
+  border-top: 1px solid #BBB;
   padding: 6px;
-  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 6px;
+  border-top-left-radius: 6px;
 }
 .ref {
   display: none;
@@ -81,8 +85,8 @@ a:hover, a:active {
   page-break-before: always;
 }
 .verse {
-  margin-top: 0.125em;
-  margin-bottom: 0.125em;
+  padding: 0.18em 0.25em;
+  margin: 0;
   line-height: 1.2em;
   text-indent: 0;
 }
@@ -98,12 +102,64 @@ a:hover, a:active {
 }
 .tocp {
     text-indent: -2em;
-    padding-left: 2em;
+    padding: 0.18em 0.25em 0.18em 2.25em;
     margin-bottom: 0.25em;
     margin-top: 0;
     text-align: left;
 }
-")
+.hilite {
+  background-color: #FFFF99;
+}
+.about {
+  font-size: 60%;
+  font-style: italic;
+  text-align: center;
+  margin: 0.5em 0 -0.25em 0;
+}")
+
+(defn js []
+"// NOTE: Experimental
+document.lastElem = null;
+
+function RemoveHilite(el) {
+    if(el) {
+        var t = el.className;
+        t = t.replace('hilite', '').trim();
+        el.className = t;
+    }
+}
+
+function AddHilite(el) {
+    if(el) {
+        var t = el.className;
+        t = t.replace('hilite', '').trim();
+        t += ' hilite';
+        el.className = t;
+    }
+}
+
+function SetHilight()
+{
+    var el;
+    if(document.lastElem) {
+        el = document.getElementById(document.lastElem);
+        RemoveHilite(el);
+    }
+
+    var id = window.location.hash.substr(1);
+    el = document.getElementById(id);
+    if(el) {
+        document.lastElem = id;
+        AddHilite(el);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function(e) {
+    SetHilight();
+    window.addEventListener('hashchange', function(e) {
+        SetHilight();
+    });
+});")
 
 (defn book-name [book-id]
   (let [m {
@@ -175,6 +231,9 @@ a:hover, a:active {
     :Revelation     "Revelation"}]
     (get m book-id)))
 
+(defn book-elem-id [book-id]
+  (s/replace (book-name book-id) " " "-"))
+
 (defn chapter-name
   ([book-id chap-num chap-count]
     (if (> chap-count 1)
@@ -194,7 +253,7 @@ a:hover, a:active {
     (rel-url book-id chap-num chap-cnt)))
 
 (defn toc-book [b]
-  [:p.tocp {:id (book-name (:id b))}
+  [:p.tocp {:id (book-elem-id (:id b))}
     [:span.chapter (book-name (:id b))]
     " "
     (->> (:chapters b)
@@ -219,7 +278,10 @@ a:hover, a:active {
           [:h2 "The New Testament"]
           (->> m
             (drop 39)
-            (map toc-book))]]]))
+            (map toc-book))
+
+          [:div.about [:a {:href "https://github.com/pstephens/EverlastingBible/blob/master/README.md"} "About EverlastingBible.com"]]]
+        [:script {:type "text/javascript" :src "hiliter.js"}]]]))
 
 (defn chapters [m]
   (->> m
@@ -285,18 +347,29 @@ a:hover, a:active {
     (let [[_ acc] (tokens-to-markup tokens '())]
       acc)))
 
-(defn number-markup [i {subtitle :subtitle :as ch}]
+(defn verse-num [i {chapter-has-subtitle :subtitle :as ch}]
   (cond
-    (postscript? i ch) ""
-    (subtitle? i ch) ""
+    (postscript? i ch) nil
+    (subtitle? i ch) nil
     :else
-    (let [delta (if subtitle 0 1)
+    (let [delta (if chapter-has-subtitle 0 1)
           verse-num (+ i delta)]
-      (str verse-num " "))))
+      verse-num)))
+
+(defn number-markup [i ch]
+  (if-let [num (verse-num i ch)]
+    (list [:a {:href (str (rel-url ch) "#" num)} num] " ")
+    ""))
+
+(defn verse-id [i ch]
+  (if-let [num (verse-num i ch)]
+    {:id num}
+    {}))
 
 (defn verse [i ch v]
   (let [tokens (tokenize v)]
-    [:p {:class (verse-class i ch)}
+    [:p
+      (merge {:class (verse-class i ch)} (verse-id i ch))
       (number-markup i ch)
       (tokens-to-markup tokens)]))
 
@@ -319,17 +392,19 @@ a:hover, a:active {
         [:title (str (chapter-name ch) " - The King James Bible")]
         [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
       [:body
-        [:body.content
+        [:div.content
           [:div.menu
             [:div.menu2
+              [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
+              "&nbsp; "
               (chapter-url prev-ch "<<")
-              " "
-              (chapter-url next-ch ">>")
-              " "
-              [:a {:href (str ".#" (book-name book-id))} (chapter-name ch)]]]
+              "&nbsp; "
+              (chapter-url next-ch ">>")]]
           [:h1.chap
             (chapter-name ch)]
-          (map-indexed #(verse %1 ch %2) verses)]]]))
+          (map-indexed #(verse %1 ch %2) verses)
+          [:div.about [:a {:href "https://github.com/pstephens/EverlastingBible/blob/master/README.md"} "About EverlastingBible.com"]]
+          [:script {:type "text/javascript" :src "hiliter.js"}]]]]))
 
 (defn next-chapter [all-chapters i]
   (get all-chapters (inc i)))
@@ -346,6 +421,7 @@ a:hover, a:active {
   (let [m (parse parser src)
         all-chapters (chapters m)]
     (write! output-dir "styles.css" (style))
+    (write! output-dir "hiliter.js" (js))
     (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m))
     (dorun
       (map-indexed
