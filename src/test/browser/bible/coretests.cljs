@@ -110,14 +110,14 @@
                {:idx 3 :book exo :verse-cnt 1 :verse-idx 12}
                {:idx 4 :book exo :verse-cnt 2 :verse-idx 13}]
              :partition-size 2}
-          v0 ["V1" "v2"]
-          v1 ["V3" "v4"]
-          v2 ["V5" "v6"]
-          v3 ["V7" "v8"]
-          v4 ["V9" "v10"]
-          v5 ["V11" "v12"]
-          v6 ["V13" "v14"]
-          v7 ["V15" "v16"]
+          v0 ["V1" "V2"]
+          v1 ["V3" "V4"]
+          v2 ["V5" "V6"]
+          v3 ["V7" "V8"]
+          v4 ["V9" "V10"]
+          v5 ["V11" "V12"]
+          v6 ["V13" "V14"]
+          v7 ["V15" "V16"]
           m {"B"   b
              "V00" v0
              "V01" v1
@@ -127,7 +127,14 @@
              "V05" v5
              "V06" v6
              "V07" v7}]
-      (is (= "v6" (get-in (b/verse m [5]) [0 :content])))))
+      (is (= "V1" (get-in (b/verse m [0]) [0 :content])))
+      (is (= "V6" (get-in (b/verse m [5]) [0 :content])))
+      (is (= "V16" (get-in (b/verse m [15]) [0 :content])))
+      (is (thrown? js/Error (b/verse m [25])))
+      (is (thrown? js/Error (b/verse m [-1])))
+      (is (= ["V2" "V7" "V15"] (->> (b/verse m [1 6 14]) (map :content) (vec))))
+      (is (= ["V7" "V15" "V2"] (->> (b/verse m [6 14 1]) (map :content) (vec))))
+      (is (thrown? js/Error (b/verse m [5 6 -1])))))
 
   (testing "I/O against resource"
     (async done

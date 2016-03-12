@@ -91,18 +91,19 @@
           (verse res indexes))
         (catch js/Error e
           e))))
-  ([{b "B" :as all} verse-refs]
+  ([{b "B" :as all} verse-idxs]
     (let [partition-size (:partition-size b)]
       (loop [acc []
-             verse-refs (seq verse-refs)]
-        (if verse-refs
-          (let [verse-ref (first verse-refs)
-                next-refs (next verse-refs)
-                idx verse-ref
-                r-idx (quot idx partition-size)
-                r-id (str "V" (if (< r-idx 10) "0" "") r-idx)
-                res (get all r-id)
-                v-idx (rem idx partition-size)
-                data (get res v-idx)]
-            (recur (conj acc {:content data}) next-refs))
+             verse-idxs (seq verse-idxs)]
+        (if verse-idxs
+          (let [verse-idx (first verse-idxs)
+                next-idxs (next verse-idxs)
+                res-idx (quot verse-idx partition-size)
+                verse-offset (rem verse-idx partition-size)
+                res-id (str "V" (if (< res-idx 10) "0" "") res-idx)
+                res (get all res-id)
+                data (get res verse-offset)]
+            (if data
+              (recur (conj acc {:content data}) next-idxs)
+              (throw (js/Error. (str "Invalid verse-idx " verse-idx ".")))))
           acc)))))
