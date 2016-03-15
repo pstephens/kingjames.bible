@@ -25,16 +25,23 @@ function ContentTypeFromKey($key)
         "\.html$" { "text/html" }
         "\.css$" { "text/css" }
         "\.js$" { "text/javascript" }
+        "\.xml$" { "application/xml" }
         "^[^.]+$" { "text/html" }
+        "\.txt$" { "text/plain" }
         default { throw "Invalid file key: $key" }
     }
 }
 
 function WriteFile($key)
 {
+    $contentType = ContentTypeFromKey $key
+    $headers = @{ "Cache-Control" = "max-age=600" }
+    if($contentType -eq "text/html") {
+        $headers["Content-Langauge"] = "en"
+    }
     Write-S3Object -bucketname $bucket `
         -file ($new[$key].FullName) `
-        -contenttype (ContentTypeFromKey $key) `
+        -contenttype $contentType `
         -headercollection @{
             "Cache-Control" = "max-age=600"
         } `
@@ -60,4 +67,10 @@ $keysToUpdate |
     foreach-object {
         Write-Host "Updating $_"
         WriteFile $_
+    }
+
+$keysToDelete |
+    sort-object |
+    foreach {
+        Write-Host "Should delete $_"
     }
