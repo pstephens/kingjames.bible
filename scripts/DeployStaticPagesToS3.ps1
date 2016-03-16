@@ -1,6 +1,7 @@
 param(
     $dir = "$psscriptroot\..\out\static",
-    $bucket = "everlastingbible.com"
+    $bucket = "everlastingbible.com",
+    [switch] $force
 )
 
 $existing = Get-S3Object -bucketname $bucket |
@@ -22,11 +23,11 @@ $keysToUpdate = @($new.keys | where { $existing.ContainsKey($_) })
 function ContentTypeFromKey($key)
 {
     switch -regex ($key) {
-        "\.html$" { "text/html" }
-        "\.css$" { "text/css" }
+        "\.html$" { "text/html;charset=utf-8" }
+        "\.css$" { "text/css;charset=utf-8" }
         "\.js$" { "text/javascript" }
         "\.xml$" { "application/xml" }
-        "^[^.]+$" { "text/html" }
+        "^[^.]+$" { "text/html;charset=utf-8" }
         "\.txt$" { "text/plain" }
         default { throw "Invalid file key: $key" }
     }
@@ -60,9 +61,13 @@ $keysToAdd |
 $keysToUpdate |
     sort-object |
     where {
-        $etag = $existing[$_].ETag
-        $md5 = "`"$((Get-FileHash ($new[$_].FullName) -algorithm md5).Hash)`""
-        $etag -ne $md5
+        if($force) {
+            $true
+        } else {
+            $etag = $existing[$_].ETag
+            $md5 = "`"$((Get-FileHash ($new[$_].FullName) -algorithm md5).Hash)`""
+            $etag -ne $md5
+        }
     } |
     foreach-object {
         Write-Host "Updating $_"

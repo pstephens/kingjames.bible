@@ -471,9 +471,9 @@ ga('send', 'pageview');")
               [:div.menu2
                 [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
                 "&nbsp; "
-                (chapter-url prev-ch "<<")
+                (chapter-url prev-ch "&lt;&lt;")
                 "&nbsp; "
-                (chapter-url next-ch ">>")]]
+                (chapter-url next-ch "&gt;&gt;")]]
             [:h1.chap
               (chapter-name ch)]
             (map-indexed #(verse %1 ch %2) verses)
