@@ -24,8 +24,8 @@
 
 (defn style []
 "body {
-  background-color: #DDD;
-  overflow-y: scroll;
+  margin: 0;
+  padding: 0;
 }
 a:link, a:visited {
   text-decoration: none;
@@ -37,32 +37,8 @@ a:hover, a:active {
 }
 .content {
   font-size: 125%;
-  width: 600px;
-  margin: 25px auto 15px auto;
   padding: 25px;
-  border-left: #BBB;
-  border-right: #BBB;
   background-color: #FFFFFF;
-  -webkit-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
-  -moz-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
-  box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
-}
-.menu {
-  position: fixed;
-}
-.menu2 {
-  white-space: nowrap;
-  font-family: Arial, sans-serif;
-  font-size: 80%;
-  position: absolute;
-  right: 24px;
-  background-color: #FFFFFF;
-  border-left: 1px solid #BBB;
-  border-bottom: 1px solid #BBB;
-  border-top: 1px solid #BBB;
-  padding: 6px;
-  border-bottom-left-radius: 6px;
-  border-top-left-radius: 6px;
 }
 .ref {
   display: none;
@@ -115,7 +91,87 @@ a:hover, a:active {
   font-style: italic;
   text-align: center;
   margin: 0.5em 0 -0.25em 0;
-}")
+}
+
+@media (min-width: 1100px) {
+  .menu {
+    position: fixed;
+  }
+  .menu2 {
+    white-space: nowrap;
+    font-family: Arial, sans-serif;
+    font-size: 80%;
+    position: absolute;
+    right: 25px;
+    background-color: #FFFFFF;
+    border-left: 1px solid #BBB;
+    border-bottom: 1px solid #BBB;
+    border-top: 1px solid #BBB;
+    padding: 6px;
+    border-bottom-left-radius: 6px;
+    border-top-left-radius: 6px;
+  }
+}
+
+@media (min-width: 680px) {
+  body {
+    background-color: #DDD;
+    overflow-y: scroll;
+  }
+  .content {
+    width: 600px;
+    margin: 25px auto 15px auto;
+    border: 1px solid #BBB;
+    -webkit-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
+    -moz-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
+    box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
+  }
+}
+
+@media (min-width: 680px) and (max-width: 1100px) {
+  .menu {
+    position: fixed;
+    top: 0;
+  }
+  .menu2 {
+    white-space: nowrap;
+    font-family: Arial, sans-serif;
+    font-size: 80%;
+    background-color: #FFFFFF;
+    border: 1px solid #BBB;
+    text-align: right;
+    padding: 6px 25px;
+    position: absolute;
+    left: -26px;
+    width: 600px;
+  }
+}
+
+@media (max-width: 680px) {
+  .content {
+    min-width: 280px;
+    margin: 25px auto 15px auto;
+  }
+  .menu {
+    position: fixed;
+    width: 100%;
+    right: 0;
+    top: 0;
+  }
+  .menu2 {
+    white-space: nowrap;
+    font-family: Arial, sans-serif;
+    font-size: 80%;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #BBB;
+    text-align: right;
+    padding: 6px 25px;
+    position: absolute;
+    right: 0;
+    width: 100%;
+  }
+}
+")
 
 (defn js []
 "// NOTE: Experimental
@@ -159,7 +215,18 @@ document.addEventListener('DOMContentLoaded', function(e) {
     window.addEventListener('hashchange', function(e) {
         SetHilight();
     });
-});")
+});
+
+// Google Analytics
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-75078401-1', 'auto');
+ga('send', 'pageview');")
+
+(defn robots [] "Sitemap: https://everlastingbible.com/sitemap.xml")
 
 (defn book-name [book-id]
   (let [m {
@@ -261,27 +328,30 @@ document.addEventListener('DOMContentLoaded', function(e) {
         (list [:a {:href (rel-url (:id b) (:num ch) (count (:chapters b)))} (:num ch)] " "))))])
 
 (defn toc [m]
-  (html
-    [:html
-      [:head
-        [:title "The King James Bible"]
-        [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
-      [:body
-        [:div.content
-          [:h1 "The King James Bible"]
+  (str "<!DOCTYPE html>"
+    (html
+      [:html {:lang "en"}
+        [:head
+          [:title "The King James Bible"]
+          [:meta {:name "description" :content "The King James Bible, the Holy Bible in English - Table of Contents"}]
+          [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
+          [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
+        [:body
+          [:div.content
+            [:h1 "The King James Bible"]
 
-          [:h2 "The Old Testament"]
-          (->> m
-            (take 39)
-            (map toc-book))
+            [:h2 "The Old Testament"]
+            (->> m
+              (take 39)
+              (map toc-book))
 
-          [:h2 "The New Testament"]
-          (->> m
-            (drop 39)
-            (map toc-book))
+            [:h2 "The New Testament"]
+            (->> m
+              (drop 39)
+              (map toc-book))
 
-          [:div.about [:a {:href "https://github.com/pstephens/EverlastingBible/blob/master/README.md"} "About EverlastingBible.com"]]]
-        [:script {:type "text/javascript" :src "hiliter.js"}]]]))
+            [:div.about [:a {:href "https://github.com/pstephens/EverlastingBible/blob/master/README.md"} "About EverlastingBible.com"]]]
+          [:script {:type "text/javascript" :src "hiliter.js"}]]])))
 
 (defn chapters [m]
   (->> m
@@ -386,31 +456,56 @@ document.addEventListener('DOMContentLoaded', function(e) {
     :as ch}
     prev-ch
     next-ch]
-  (html
-    [:html
-      [:head
-        [:title (str (chapter-name ch) " - The King James Bible")]
-        [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
-      [:body
-        [:div.content
-          [:div.menu
-            [:div.menu2
-              [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
-              "&nbsp; "
-              (chapter-url prev-ch "<<")
-              "&nbsp; "
-              (chapter-url next-ch ">>")]]
-          [:h1.chap
-            (chapter-name ch)]
-          (map-indexed #(verse %1 ch %2) verses)
-          [:div.about [:a {:href "https://github.com/pstephens/EverlastingBible/blob/master/README.md"} "About EverlastingBible.com"]]
-          [:script {:type "text/javascript" :src "hiliter.js"}]]]]))
+  (str
+    "<!DOCTYPE html>"
+    (html
+      [:html {:lang "en"}
+        [:head
+          [:title (str (chapter-name ch) " - The King James Bible")]
+          [:meta {:name "description" :content (str "The King James Bible, the Holy Bible in English - " (chapter-name ch))}]
+          [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
+          [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
+        [:body
+          [:div.content
+            [:div.menu
+              [:div.menu2
+                [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
+                "&nbsp; "
+                (chapter-url prev-ch "&lt;&lt;")
+                "&nbsp; "
+                (chapter-url next-ch "&gt;&gt;")]]
+            [:h1.chap
+              (chapter-name ch)]
+            (map-indexed #(verse %1 ch %2) verses)
+            [:div.about [:a {:href "https://github.com/pstephens/EverlastingBible/blob/master/README.md"} "About EverlastingBible.com"]]
+            [:script {:type "text/javascript" :src "hiliter.js"}]]]])))
 
 (defn next-chapter [all-chapters i]
   (get all-chapters (inc i)))
 
 (defn prev-chapter [all-chapters i]
   (get all-chapters (dec i)))
+
+(defn sitemap-line [rel-url freq priority]
+  (str
+    "<url><loc>https://everlastingbible.com/"
+    rel-url
+    "</loc><changefreq>"
+    freq
+    "</changefreq><priority>"
+    priority
+    "</priority></url>
+"))
+
+(defn sitemap [chapters]
+  (apply str
+    (flatten [
+"<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">
+"
+(sitemap-line "" "daily" "0.8")
+(map #(sitemap-line (rel-url %) "monthly" "1.0") chapters)
+"</urlset>"])))
 
 (defn write! [dir filename content]
   (let [filepath (.join node-path dir filename)
@@ -422,6 +517,8 @@ document.addEventListener('DOMContentLoaded', function(e) {
         all-chapters (chapters m)]
     (write! output-dir "styles.css" (style))
     (write! output-dir "hiliter.js" (js))
+    (write! output-dir "robots.txt" (robots))
+    (write! output-dir "sitemap.xml" (sitemap all-chapters))
     (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m))
     (dorun
       (map-indexed
