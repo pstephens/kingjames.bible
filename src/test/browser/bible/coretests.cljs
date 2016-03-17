@@ -108,7 +108,7 @@
                {:idx 1 :book gen :verse-cnt 5 :verse-idx 4}
                {:idx 2 :book exo :verse-cnt 3 :verse-idx 9}
                {:idx 3 :book exo :verse-cnt 1 :verse-idx 12}
-               {:idx 4 :book exo :verse-cnt 2 :verse-idx 13}]
+               {:idx 4 :book exo :verse-cnt 3 :verse-idx 13}]
              :partition-size 2}
           v0 ["V1" "V2"]
           v1 ["V3" "V4"]
@@ -134,7 +134,12 @@
       (is (thrown? js/Error (b/verse m [-1])))
       (is (= ["V2" "V7" "V15"] (->> (b/verse m [1 6 14]) (map :content) (vec))))
       (is (= ["V7" "V15" "V2"] (->> (b/verse m [6 14 1]) (map :content) (vec))))
-      (is (thrown? js/Error (b/verse m [5 6 -1])))))
+      (is (thrown? js/Error (b/verse m [5 6 -1])))
+      (is (= 3 (get-in (b/verse m [12]) [0 :chapter :idx])))
+      (is (= 4 (get-in (b/verse m [13]) [0 :chapter :idx])))
+      (is (= 0 (get-in (b/verse m [0]) [0 :chapter :idx])))
+      (is (= 4 (get-in (b/verse m [15]) [0 :chapter :idx])))
+      (is (thrown? js/Error (b/verse m [16])))))
 
   (testing "I/O against resource"
     (async done

@@ -76,6 +76,25 @@
 (defn format-verse-res-id [partition-idx]
   (str "V" (if (< partition-idx 10) "0" "") partition-idx))
 
+(defn binary-search [chapters verse-idx]
+  (loop [i 0
+         k (dec (count chapters))]
+    (if (<= i k)
+      (let [j (quot (+ i k) 2)
+           {first-verse-idx :verse-idx
+            verse-cnt :verse-cnt
+            :as chapter} (chapters j)]
+        (cond
+          (< verse-idx first-verse-idx)
+          (recur i (dec j))
+
+          (>= verse-idx (+ first-verse-idx verse-cnt))
+          (recur (inc j) k)
+
+          :else
+          chapter))
+      (throw (js/Error. (str "Chapter not found for verse " verse-idx "."))))))
+
 (defn verse
   ([verse-refs]
     (go
@@ -91,19 +110,20 @@
           (verse res indexes))
         (catch js/Error e
           e))))
-  ([{b "B" :as all} verse-idxs]
-    (let [partition-size (:partition-size b)]
-      (loop [acc []
-             verse-idxs (seq verse-idxs)]
-        (if verse-idxs
-          (let [verse-idx (first verse-idxs)
-                next-idxs (next verse-idxs)
-                res-idx (quot verse-idx partition-size)
-                verse-offset (rem verse-idx partition-size)
-                res-id (str "V" (if (< res-idx 10) "0" "") res-idx)
-                res (get all res-id)
-                data (get res verse-offset)]
-            (if data
-              (recur (conj acc {:content data}) next-idxs)
-              (throw (js/Error. (str "Invalid verse-idx " verse-idx ".")))))
-          acc)))))
+  ([{{partition-size :partition-size chapters :chapters} "B" :as all} verse-idxs]
+    (loop [acc []
+           verse-idxs (seq verse-idxs)]
+      (if verse-idxs
+        (let [verse-idx (first verse-idxs)
+              next-idxs (next verse-idxs)
+              res-idx (quot verse-idx partition-size)
+              verse-offset (rem verse-idx partition-size)
+              res-id (str "V" (if (< res-idx 10) "0" "") res-idx)
+              res (get all res-id)
+              data (get res verse-offset)]
+          (if data
+            (recur (conj acc {:content data
+                              :chapter (binary-search chapters verse-idx)})
+                   next-idxs)
+            (throw (js/Error. (str "Invalid verse-idx " verse-idx ".")))))
+        acc))))
