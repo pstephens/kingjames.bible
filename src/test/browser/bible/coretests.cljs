@@ -20,24 +20,23 @@
             [cljs.core.async :refer [<!]]
             [cljs.test :refer-macros [async deftest testing is]]))
 
-(deftest parse-ref
-  (is (= (b/parse-ref [:Genesis]) [:Genesis nil nil])))
-
 (deftest book
   (testing "Pure functional model"
-    (let [m {:books
-              [{:id :Genesis
-                :idx 0
-                :chapter-cnt 50
-                :chapter-idx 0}
-               {:id :Exodus
-                :idx 1
-                :chapter-cnt 40
-                :chapter-idx 50}
-               {:id :Leviticus
-                :idx 2
-                :chapter-cnt 27
-                :chapter-idx 90}]}]
+    (let [m
+      {"B"
+        {:books
+          [{:id :Genesis
+            :idx 0
+            :chapter-cnt 50
+            :chapter-idx 0}
+           {:id :Exodus
+            :idx 1
+            :chapter-cnt 40
+            :chapter-idx 50}
+           {:id :Leviticus
+            :idx 2
+            :chapter-cnt 27
+            :chapter-idx 90}]}}]
       (is (= :Genesis (get-in (b/book m [0]) [0 :id])))
       (is (= :Leviticus (get-in (b/book m [2]) [0 :id])))
       (is (thrown? js/Error (b/book m [-1])))
@@ -66,13 +65,15 @@
                :idx 1
                :chapter-cnt 3
                :chapter-idx 2}
-          m {:books [gen exo]
-             :chapters
-              [{:idx 0 :book gen :verse-cnt 31 :verse-idx 0}
-               {:idx 1 :book gen :verse-cnt 25 :verse-idx 31}
-               {:idx 2 :book exo :verse-cnt 22 :verse-idx 56}
-               {:idx 3 :book exo :verse-cnt 25 :verse-idx 78}
-               {:idx 4 :book exo :verse-cnt 22 :verse-idx 103}]}]
+          m
+            {"B"
+              {:books [gen exo]
+               :chapters
+                [{:idx 0 :book gen :verse-cnt 31 :verse-idx 0}
+                 {:idx 1 :book gen :verse-cnt 25 :verse-idx 31}
+                 {:idx 2 :book exo :verse-cnt 22 :verse-idx 56}
+                 {:idx 3 :book exo :verse-cnt 25 :verse-idx 78}
+                 {:idx 4 :book exo :verse-cnt 22 :verse-idx 103}]}}]
       (is (= 0 (get-in (b/chapter m [0]) [0 :idx])))
       (is (= 3 (get-in (b/chapter m [3]) [0 :idx])))
       (is (thrown? js/Error (b/chapter m [-1])))
