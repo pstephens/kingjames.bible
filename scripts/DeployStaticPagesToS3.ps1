@@ -1,6 +1,7 @@
 param(
     $dir = "$psscriptroot\..\out\static",
-    $bucket = "everlastingbible.com"
+    $bucket = "everlastingbible.com",
+    [switch] $force
 )
 
 $existing = Get-S3Object -bucketname $bucket |
@@ -22,19 +23,26 @@ $keysToUpdate = @($new.keys | where { $existing.ContainsKey($_) })
 function ContentTypeFromKey($key)
 {
     switch -regex ($key) {
-        "\.html$" { "text/html" }
-        "\.css$" { "text/css" }
+        "\.html$" { "text/html;charset=utf-8" }
+        "\.css$" { "text/css;charset=utf-8" }
         "\.js$" { "text/javascript" }
-        "^[^.]+$" { "text/html" }
+        "\.xml$" { "application/xml" }
+        "^[^.]+$" { "text/html;charset=utf-8" }
+        "\.txt$" { "text/plain" }
         default { throw "Invalid file key: $key" }
     }
 }
 
 function WriteFile($key)
 {
+    $contentType = ContentTypeFromKey $key
+    $headers = @{ "Cache-Control" = "max-age=600" }
+    if($contentType -eq "text/html") {
+        $headers["Content-Langauge"] = "en"
+    }
     Write-S3Object -bucketname $bucket `
         -file ($new[$key].FullName) `
-        -contenttype (ContentTypeFromKey $key) `
+        -contenttype $contentType `
         -headercollection @{
             "Cache-Control" = "max-age=600"
         } `
@@ -53,11 +61,21 @@ $keysToAdd |
 $keysToUpdate |
     sort-object |
     where {
-        $etag = $existing[$_].ETag
-        $md5 = "`"$((Get-FileHash ($new[$_].FullName) -algorithm md5).Hash)`""
-        $etag -ne $md5
+        if($force) {
+            $true
+        } else {
+            $etag = $existing[$_].ETag
+            $md5 = "`"$((Get-FileHash ($new[$_].FullName) -algorithm md5).Hash)`""
+            $etag -ne $md5
+        }
     } |
     foreach-object {
         Write-Host "Updating $_"
         WriteFile $_
+    }
+
+$keysToDelete |
+    sort-object |
+    foreach {
+        Write-Host "Should delete $_"
     }
