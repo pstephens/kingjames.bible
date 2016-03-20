@@ -139,11 +139,42 @@
       (is (= 4 (get-in (b/verse m [13]) [0 :chapter :idx])))
       (is (= 0 (get-in (b/verse m [0]) [0 :chapter :idx])))
       (is (= 4 (get-in (b/verse m [15]) [0 :chapter :idx])))
-      (is (thrown? js/Error (b/verse m [16])))))
+      (is (thrown? js/Error (b/verse m [16])))
+      (is (= 0 (get-in (b/verse m [0]) [0 :idx])))
+      (is (= 7 (get-in (b/verse m [7]) [0 :idx])))
+      (is (= 15 (get-in (b/verse m [15]) [0 :idx])))))
 
   (testing "I/O against resource"
     (async done
       (go
         (is (= "And God said, Let there be a firmament in the midst of the waters, and let it divide the waters from the waters."
-          (get-in (<? (b/verse [5])) [0 :content])))
+          (get-in (<? (b/verse [5])) [0 :content])) ":content Gen 1:5")
+        (is (= "The grace of our Lord Jesus Christ [be] with you all. Amen."
+          (get-in (<? (b/verse [31230])) [0 :content])) ":content Rev 22:21")
+        (is (= "And he shewed me a pure river of water of life, clear as crystal, proceeding out of the throne of God and of the Lamb."
+          (get-in (<? (b/verse [31210])) [0 :content])) ":content Rev 22:1")
+        (is (= "And there shall in no wise enter into it any thing that defileth, neither [whatsoever] worketh abomination, or [maketh] a lie: but they which are written in the Lamb's book of life."
+          (get-in (<? (b/verse [31209])) [0 :content])) ":content Rev 21:27")
+        (is (= "Be still, and know that I [am] God: I will be exalted among the heathen, I will be exalted in the earth."
+          (get-in (<? (b/verse [14665])) [0 :content])) ":content Ps 46:10")
+
+        (is (= 0 (get-in (<? (b/verse [5])) [0 :chapter :idx])) ":chapter Gen 1:5")
+        (is (= 1188 (get-in (<? (b/verse [31230])) [0 :chapter :idx])) ":chapter Rev 22:21")
+        (is (= 1188 (get-in (<? (b/verse [31210])) [0 :chapter :idx])) ":chapter Rev 22:1")
+        (is (= 1187 (get-in (<? (b/verse [31209])) [0 :chapter :idx])) ":chapter Rev 21:27")
+        (is (= 523 (get-in (<? (b/verse [14665])) [0 :chapter :idx])) ":chapter Ps 46:10")
+
+        (is (= 5 (get-in (<? (b/verse [5])) [0 :idx])) ":idx Gen 1:5")
+        (is (= 31230 (get-in (<? (b/verse [31230])) [0 :idx])) ":idx Rev 22:21")
+        (is (= 31210 (get-in (<? (b/verse [31210])) [0 :idx])) ":idx Rev 22:1")
+        (is (= 31209 (get-in (<? (b/verse [31209])) [0 :idx])) ":idx Rev 21:27")
+        (is (= 14665 (get-in (<? (b/verse [14665])) [0 :idx])) ":idx Ps 46:10")
+
+        (is
+          (= ["And that Jacob obeyed his father and his mother, and was gone to Padanaram;"
+              "And Esau seeing that the daughters of Canaan pleased not Isaac his father;"]
+            (->> (<? (b/verse [780 781])) (map :content) (vec))) "Fetch across partition boundaries.")
+
+        (is (thrown? js/Error (<? (b/verse [31231]))))
+
         (done)))))

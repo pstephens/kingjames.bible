@@ -123,7 +123,8 @@
               data (get res verse-offset)]
           (if data
             (recur (conj acc {:content data
-                              :chapter (binary-search chapters verse-idx)})
+                              :chapter (binary-search chapters verse-idx)
+                              :idx verse-idx})
                    next-idxs)
             (throw (js/Error. (str "Invalid verse-idx " verse-idx ".")))))
         acc))))

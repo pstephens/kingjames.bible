@@ -12,3 +12,4 @@
 .nrepl-port
 /.cljs_node_repl/
 *.sublime-workspace
+*.log
