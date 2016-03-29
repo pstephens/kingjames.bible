@@ -1,5 +1,5 @@
-# EverlastingBible.com
-Source for http://everlastingbible.com, one of many copies of the King James Bible on the web.
+# The King James Bible
+Source for https://kingjames.bible, one of many copies of the King James Bible on the web.
 
 This is a labor of love with the end goal being a clean, high quality implementation without distracting fluff.
 
