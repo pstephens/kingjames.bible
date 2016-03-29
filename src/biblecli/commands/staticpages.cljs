@@ -226,7 +226,7 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 ga('create', 'UA-75078401-1', 'auto');
 ga('send', 'pageview');")
 
-(defn robots [] "Sitemap: https://everlastingbible.com/sitemap.xml")
+(defn robots [] "Sitemap: https://kingjames.bible/sitemap.xml")
 
 (defn book-name [book-id]
   (let [m {
@@ -350,7 +350,7 @@ ga('send', 'pageview');")
               (drop 39)
               (map toc-book))
 
-            [:div.about [:a {:href "https://github.com/pstephens/EverlastingBible/blob/master/README.md"} "About EverlastingBible.com"]]]
+            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About https://kingjames.bible"]]]
           [:script {:type "text/javascript" :src "hiliter.js"}]]])))
 
 (defn chapters [m]
@@ -477,7 +477,7 @@ ga('send', 'pageview');")
             [:h1.chap
               (chapter-name ch)]
             (map-indexed #(verse %1 ch %2) verses)
-            [:div.about [:a {:href "https://github.com/pstephens/EverlastingBible/blob/master/README.md"} "About EverlastingBible.com"]]
+            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About https://kingjames.bible"]]
             [:script {:type "text/javascript" :src "hiliter.js"}]]]])))
 
 (defn next-chapter [all-chapters i]
@@ -488,7 +488,7 @@ ga('send', 'pageview');")
 
 (defn sitemap-line [rel-url freq priority]
   (str
-    "<url><loc>https://everlastingbible.com/"
+    "<url><loc>https://kingjames.bible/"
     rel-url
     "</loc><changefreq>"
     freq
