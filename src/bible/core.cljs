@@ -19,90 +19,102 @@
             [bible.io :as io]
             [bible.meta]))
 
-(defn parse-ref [ref]
-  [(ref 0) nil nil])
+(defn ^:private binary-search [value comp v]
+  (let [cnt (count v)]
+    (if (<= cnt 0)
+      nil
+      (let [i (quot cnt 2)
+            value2 (get v i)
+            cmp (comp value value2)]
+        (cond
+          (< cmp 0) (recur value comp (subvec v 0 i))
+          (> cmp 0) (recur value comp (subvec v (inc i)))
+          :else value2)))))
+
+(defn ^:private compare-verse-idx-to-chapter
+  [verse-idx {first-verse-idx :verse-idx verse-cnt :verse-cnt}]
+    (cond
+      (< verse-idx first-verse-idx) -1
+      (>= verse-idx (+ first-verse-idx verse-cnt)) 1
+      :else 0))
+
+(defn ^:private format-verse-resid [partition-idx]
+  (str "V" (if (< partition-idx 10) "0" "") partition-idx))
+
+(defn ^:private accumulate [f idxs]
+  (loop [acc []
+         idxs (seq idxs)]
+    (if idxs
+      (let [idx (first idxs)
+            next-idxs (next idxs)
+            data (f idx)]
+        (if data
+          (recur (conj acc data) next-idxs)
+          (throw (js/Error. (str "Invalid index " idx ".")))))
+      acc)))
+
+(defn ^:private fetch-resources-and-accumulate [f-acc f-fetch idxs]
+  (go
+    (try
+      (let [res (<? (f-fetch idxs))]
+        (f-acc res idxs))
+      (catch js/Error e
+        e))))
 
 (defn book
   ([book-idxs]
-    (go
-      (try
-        (let [{book-res "B"} (<? (io/resources ["B"]))]
-          (book book-res book-idxs))
-        (catch js/Error e
-          e))))
+    (fetch-resources-and-accumulate
+      book
+      #(io/resources ["B"])
+      book-idxs))
 
-  ([book-res book-idxs]
-    (loop [acc []
-           book-idxs (seq book-idxs)]
-      (if book-idxs
-        (let [book-idx (first book-idxs)
-              next-idxs (next book-idxs)
-              data (get-in book-res [:books book-idx])]
-          (if data
-            (recur
-              (conj acc data)
-              next-idxs)
-            (throw (js/Error. (str "Invalid book-idx " book-idx ".")))))
-        acc))))
+  ([{res "B"} book-idxs]
+    (accumulate
+      #(get-in res [:books %])
+      book-idxs)))
 
 (defn chapter
   ([chapter-idxs]
-    (go
-      (try
-        (let [{res "B"} (<? (io/resources ["B"]))]
-          (chapter res chapter-idxs))
-        (catch js/Error e
-          e))))
+    (fetch-resources-and-accumulate
+      chapter
+      #(io/resources ["B"])
+      chapter-idxs))
 
-  ([res chapter-idxs]
-    (loop [acc []
-           chapter-idxs (seq chapter-idxs)]
-      (if chapter-idxs
-        (let [chapter-idx (first chapter-idxs)
-              next-idxs (next chapter-idxs)
-              data (get-in res [:chapters chapter-idx])]
-          (if data
-            (recur (conj acc data) next-idxs)
-            (throw (js/Error. (str "Invalid chapter-idx " chapter-idx ".")))))
-        acc))))
-
-(defn parse-verse-ref [b r]
-  (cond
-    (integer? r)
-    r
-
-    :else nil))
-
-(defn format-verse-res-id [partition-idx]
-  (str "V" (if (< partition-idx 10) "0" "") partition-idx))
+  ([{res "B"} chapter-idxs]
+    (accumulate
+      #(get-in res [:chapters %])
+      chapter-idxs)))
 
 (defn verse
-  ([verse-refs]
+  ([verse-idxs]
     (go
       (try
-        (let [{b "B"} (<? (io/resources ["B"]))
-              partition-size (:partition-size b)
-              indexes (->> verse-refs (map #(parse-verse-ref b %)) (vec))
-              unique-indexes (set indexes)
-              partition-indexes (->> unique-indexes (map #(quot % partition-size)) (set))
-              res-ids (->> partition-indexes (map format-verse-res-id) (vec))
-              res-ids (conj res-ids "B")
+        (let [{{partition-size :partition-size} "B"} (<? (io/resources ["B"]))
+              partition-idxs
+                (->>
+                  verse-idxs
+                  (map #(quot % partition-size))
+                  (set))
+              res-ids
+                (->>
+                  partition-idxs
+                  (map format-verse-resid)
+                  (concat ["B"])
+                  (vec))
               res (<? (io/resources res-ids))]
-          (verse res indexes))
+          (verse res verse-idxs))
         (catch js/Error e
           e))))
-  ([{b "B" :as all} verse-refs]
-    (let [partition-size (:partition-size b)]
-      (loop [acc []
-             verse-refs (seq verse-refs)]
-        (if verse-refs
-          (let [verse-ref (first verse-refs)
-                next-refs (next verse-refs)
-                idx verse-ref
-                r-idx (quot idx partition-size)
-                r-id (str "V" (if (< r-idx 10) "0" "") r-idx)
-                res (get all r-id)
-                v-idx (rem idx partition-size)
-                data (get res v-idx)]
-            (recur (conj acc {:content data}) next-refs))
-          acc)))))
+
+  ([{{partition-size :partition-size
+      chapters :chapters} "B" :as all} verse-idxs]
+    (accumulate
+      #(let [partition-idx (quot % partition-size)
+             verse-offset (rem % partition-size)
+             content (get-in all [(format-verse-resid partition-idx) verse-offset])]
+        (if content
+          {:content content
+           :chapter (binary-search % compare-verse-idx-to-chapter chapters)
+           :idx %}
+          nil))
+      verse-idxs)))
