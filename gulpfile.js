@@ -62,7 +62,7 @@ function exec(name, command, args) {
 }
 
 gulp.task('compile_dbg', function() {
-    return exec('lein', 'lein', ['cljsbuild', 'auto', 'dbg']).promise;
+    return exec('lein', 'lein', ['cljsbuild', 'auto']).promise;
 });
 
 gulp.task('bible_resources_dir', function(cb) {
@@ -98,7 +98,7 @@ gulp.task('run_tests',
         'run_phantom_tests'));
 
 gulp.task('watch_tests', function() {
-    return gulp.watch("out/dbg/last-compiled.txt",
+    return gulp.watch("out/dbg_browser/last-compiled.txt",
         gulp.series('run_tests'));
 });
 

@@ -18,6 +18,7 @@
     [common.asset.bible :as bible-res]
     [common.asset.directory :as dir]
     [common.asset.server :as server]
+    [reader.asset]
     [test.asset.testpages :as testpages]))
 
 (def node-path (js/require "path"))
@@ -29,5 +30,6 @@
         bible-meta-data (bible-res/read-bible-meta-data bible-dir)]
     (server/listen [
       (bible-res/resources bible-dir bible-meta-data)
-      (dir/resources (rel "out/dbg") "/")
+      (dir/resources (rel "out/dbg_browser") "/")
+      (reader.asset/resources)
       (testpages/resources bible-meta-data)])))
