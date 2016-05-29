@@ -15,8 +15,28 @@
 (ns reader.core
   (:require [goog.dom :as gdom]
             [om.next :as om :refer-macros [defui]]
-            [om.dom :as dom]))
+            [om.dom :as dom]
+            [bible.io]))
 
 (enable-console-print!)
 
-(println "Hello world!")
+(defui HelloWorld
+  Object
+  (render [this]
+    (dom/div nil "Hello, world!")))
+
+(def hello (om/factory HelloWorld))
+
+(js/ReactDOM.render (hello) (gdom/getElement "app"))
+
+(bible.io/resources ["B"
+  "V00" "V01" "V02" "V03" "V04" "V05" "V06" "V07" "V08" "V09"
+  "V10" "V11" "V12" "V13" "V14" "V15" "V16" "V17" "V18" "V19"
+  "V20" "V21" "V22" "V23" "V24" "V25" "V26" "V27" "V28" "V29"
+  "V30" "V31" "V32" "V33" "V34" "V35" "V36" "V37" "V38" "V39"])
+
+(def reconciler
+  (om/reconciler
+    {:state {}
+     :parser (om/parser {:read read})
+     :send (todo)}))

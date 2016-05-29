@@ -18,15 +18,16 @@
     [goog.object :as obj]
     [hiccups.runtime :as hiccupsrt]))
 
-(defn scripts []
-  '(
+(defn scripts [bible-meta-data]
+  (list
     [:script {:type "text/javascript" :src "goog/base.js"}]
     [:script {:type "text/javascript" :src "debug_refs.js"}]
+    [:script {:type "text/javascript"} "goog.require(\"bible.io\");"]
     [:script {:type "text/javascript"}
-          "goog.require(\"reader.core\");"]
-  ))
+      (common.bible.resource.resource-map bible-meta-data)
+      "goog.require(\"reader.core\");"]))
 
-(defn page-template []
+(defn page-template [bible-meta-data]
   (str "<!DOCTYPE html>"
     (html
       [:html {:lang "en"}
@@ -35,8 +36,8 @@
           [:meta {:name "description" :content "The King James Bible, the Holy Bible in English"}]
           [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]]
         [:body
-          [:div.app]
-          (scripts)]])))
+          [:div#app]
+          (scripts bible-meta-data)]])))
 
 (defn html-resource [p content-fn]
   [p
@@ -49,7 +50,7 @@
                    "Content-Length" (str (obj/get buff "length"))
                    "Last-Modified"  (.toUTCString (js/Date.))}}))])
 
-(defn resources []
+(defn resources [bible-meta-data]
   (->>
-    [(html-resource "/" page-template)]
+    [(html-resource "/" #(page-template bible-meta-data))]
     (reduce conj {})))

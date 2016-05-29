@@ -31,5 +31,5 @@
     (server/listen [
       (bible-res/resources bible-dir bible-meta-data)
       (dir/resources (rel "out/dbg_browser") "/")
-      (reader.asset/resources)
+      (reader.asset/resources bible-meta-data)
       (testpages/resources bible-meta-data)])))

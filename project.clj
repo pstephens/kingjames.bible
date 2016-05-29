@@ -1,6 +1,6 @@
-(defproject everlastingbible "0.1.0-SNAPSHOT"
+(defproject kingjames.bible "0.1.0-SNAPSHOT"
   :description "King James Version written as a client side single page application."
-  :url "http://www.everlastingbible.com"
+  :url "http://kingjames.bible"
   :license {:name "Apache 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"
             :distribution :repo}
@@ -11,7 +11,7 @@
                  [org.clojure/core.async "0.2.374"]
                  [org.clojure/data.json "0.2.6"]
                  [com.cognitect/transit-cljs "0.8.237"]
-                 [org.omcljs/om "1.0.0-alpha32"]
+                 [org.omcljs/om "1.0.0-alpha35"]
                  [hiccups "0.3.0"]]
 
   :npm {:dependencies [[gulp "gulpjs/gulp.git#4.0"]
