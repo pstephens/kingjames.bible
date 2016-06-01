@@ -13,3 +13,4 @@
 /.cljs_node_repl/
 *.sublime-workspace
 *.log
+.idea

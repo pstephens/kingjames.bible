@@ -18,17 +18,19 @@
     [biblecli.commands.normalize]
     [biblecli.commands.prepare]
     [biblecli.commands.serve]
-    [biblecli.commands.staticpages]))
+    [biblecli.commands.staticpages]
+    [biblecli.commands.verseofthedaygadget]))
 
 (nodejs/enable-util-print!)
 
 (def process nodejs/process)
 
 (def commands
-  {"normalize" biblecli.commands.normalize/normalize
-   "prepare"   biblecli.commands.prepare/prepare!
-   "serve"     biblecli.commands.serve/serve
-   "static"    biblecli.commands.staticpages/prepare!})
+  {"normalize"     biblecli.commands.normalize/normalize
+   "prepare"       biblecli.commands.prepare/prepare!
+   "serve"         biblecli.commands.serve/serve
+   "static"        biblecli.commands.staticpages/prepare!
+   "verseoftheday" biblecli.commands.verseofthedaygadget/prepare!})
 
 (defn- main [command & args]
   (try
