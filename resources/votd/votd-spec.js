@@ -15,9 +15,8 @@ describe("getVerseFromDate", function() {
             c = votd.getVerseFromDate(d, 5);
             expect(c).toBeGreaterThan(-1);
             expect(c).toBeLessThan(5);
-            console.log("c = " + c);
             expect(c === Math.floor(c)).toBeTruthy();
-            a[c] = true;
+            a[c] = (a[c] || 0) + 1;
         }
     });
 
