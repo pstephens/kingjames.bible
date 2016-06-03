@@ -1,4 +1,4 @@
-(function(window) {
+(function(window, document) {
     var votdVar = window['VotdObject'] || 'votd';
     var votd = window[votdVar] = window[votdVar] || {};
     votd.verses = [
@@ -17,12 +17,64 @@
         return Math.floor(prng.double() * maxEx);
     }
 
+    function calcUrl(baseUrl, chap) {
+        return baseUrl + chap.replace(/\s/g, "-");
+    }
+
     votd.getVerseFromDate = function getVerseFromDate(dt, cnt) {
         var dayNum = dt.getFullYear() * 10000 + dt.getMonth() * 100 + dt.getDate()
+        console.log("dayNum: " + dayNum);
         return hashedIndex(dayNum, cnt);
     };
-    votd.renderVerses = function renderVerses(baseUrl, verses) {
 
+    votd.renderVerses = function renderVerses(baseUrl, verses) {
+        var b = "",
+            url = calcUrl(baseUrl, verses[0]),
+            i, num, matches, txt;
+
+        for(i = 1; i < verses.length; ++i) {
+            matches = verses[i].match(/^(\d+) (.*)$/);
+            num = parseInt(matches[1]);
+            txt = matches[2];
+            b += '<p><a href="' + url + '#' + num + '">';
+            if(i == 1) {
+                b += verses[0] + ':';
+            }
+            b += num + '</a> ';
+            b += txt.replace(/\[/g, "<i>").replace(/\]/g, "</i>");
+            b += '</p>';
+        }
+
+        return b;
     };
 
-})(window);
+    votd.renderVersesToElement = function renderVersesToElement(id, allVerses, dt, baseUrl) {
+        var el, i, v, html;
+
+        if(!id) {
+            return;
+        }
+
+        el = document.getElementById(id);
+        if(!el) {
+            return;
+        }
+
+        i = votd.getVerseFromDate(dt, allVerses.length);
+        v = allVerses[i];
+        html = votd.renderVerses(baseUrl, v);
+
+        el.innerHTML = html;
+    }
+
+    votd.renderVerseOfTheDayToElement = function renderVersesToElement() {
+        votd.renderVersesToElement(
+            votd.i,
+            votd.verses,
+            new Date(),
+            "https://kingjames.bible/");
+    }
+
+    votd.renderVerseOfTheDayToElement();
+
+})(window, document);
