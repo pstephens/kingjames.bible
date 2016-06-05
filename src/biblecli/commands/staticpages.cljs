@@ -60,11 +60,14 @@ a:hover, a:active {
   text-align: center;
   page-break-before: always;
 }
-.verse {
+.verse, .votd p {
   padding: 0.18em 0.25em;
   margin: 0;
   line-height: 1.2em;
   text-indent: 0;
+}
+.votd {
+  min-height: 4em;
 }
 .ps119h {
   margin-top: 0.6em;
@@ -339,6 +342,9 @@ ga('send', 'pageview');")
         [:body
           [:div.content
             [:h1 "The King James Bible"]
+
+            [:div#votd.votd]
+            [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','https://kingjames.bible/votd/votd.js','votd','votd');"]
 
             [:h2 "The Old Testament"]
             (->> m
