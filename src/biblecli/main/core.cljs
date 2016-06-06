@@ -19,7 +19,7 @@
     [biblecli.commands.prepare]
     [biblecli.commands.serve]
     [biblecli.commands.staticpages]
-    [biblecli.commands.verseofthedaygadget]))
+    [biblecli.commands.verseoftheday]))
 
 (nodejs/enable-util-print!)
 
@@ -30,7 +30,7 @@
    "prepare"       biblecli.commands.prepare/prepare!
    "serve"         biblecli.commands.serve/serve
    "static"        biblecli.commands.staticpages/prepare!
-   "verseoftheday" biblecli.commands.verseofthedaygadget/prepare!})
+   "verseoftheday" biblecli.commands.verseoftheday/prepare!})
 
 (defn- main [command & args]
   (try

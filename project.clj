@@ -1,6 +1,6 @@
-(defproject everlastingbible "0.1.0-SNAPSHOT"
+(defproject kingjames.bible "0.1.0-SNAPSHOT"
   :description "King James Version written as a client side single page application."
-  :url "http://www.everlastingbible.com"
+  :url "https://kingjames.bible"
   :license {:name "Apache 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0"
             :distribution :repo}
