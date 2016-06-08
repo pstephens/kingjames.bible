@@ -238,9 +238,9 @@
         return baseUrl + chap.replace(/\s/g, "-");
     }
 
-    votd.getVerseFromDate = function getVerseFromDate(dt, cnt) {
+    votd.getVerseFromDateAndHostname = function getVerseFromDateAndHostname(dt, hostname, cnt) {
         var dayNum = dt.getFullYear() * 10000 + dt.getMonth() * 100 + dt.getDate()
-        return hashedIndex(dayNum, cnt);
+        return hashedIndex((hostname || "") + dayNum, cnt);
     };
 
     votd.renderVerses = function renderVerses(baseUrl, verses) {
@@ -264,7 +264,7 @@
         return b;
     };
 
-    votd.renderVersesToElement = function renderVersesToElement(id, allVerses, dt, baseUrl) {
+    votd.renderVersesToElement = function renderVersesToElement(id, allVerses, dt, baseUrl, hostname) {
         var el, i, v, html;
 
         if(!id) {
@@ -276,7 +276,7 @@
             return;
         }
 
-        i = votd.getVerseFromDate(dt, allVerses.length);
+        i = votd.getVerseFromDateAndHostname(dt, hostname, allVerses.length);
         v = allVerses[i];
         html = votd.renderVerses(baseUrl, v);
 
@@ -288,7 +288,8 @@
             votd.i,
             votd.verses,
             new Date(),
-            "https://kingjames.bible/");
+            "https://kingjames.bible/",
+            (document.location || {}).hostname);
     }
 
     votd.renderVerseOfTheDayToElement();
