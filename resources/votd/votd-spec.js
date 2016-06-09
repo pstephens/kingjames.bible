@@ -47,6 +47,13 @@ describe("getVerseFromDateAndHostname", function() {
         expect(votd.getVerseFromDateAndHostname(addMs(d, -1), "", 100)).not.toEqual(idx);
     });
 
+    it("should return different indexes for different hostnames", function() {
+        var d = new Date(2005, 6, 2);
+        var idx1 = votd.getVerseFromDateAndHostname(d, "host1.com", 100);
+        var idx2 = votd.getVerseFromDateAndHostname(d, "host2.com", 100);
+        expect(idx1).not.toEqual(idx2);
+    });
+
 });
 
 describe("renderVerses", function() {
