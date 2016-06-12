@@ -19,8 +19,7 @@ function output_to(name, stream) {
                 return !(/^\s*$/.test(line)); })
             .forEach(function(line) {
                 stream.write(name + ': ' + line + os.EOL);
-            })
-            .value();
+            });
     }
 }
 
