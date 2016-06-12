@@ -24,10 +24,12 @@ function output_to(name, stream) {
     }
 }
 
-function spawn(name, command, args) {
+function spawn(name, command, args, options) {
     var deferred = q.defer();
     args = args || [];
-    var proc = cp.spawn(command, args, { cwd: root_dir });
+    options = Object.assign({ cwd: root_dir }, options || {});
+
+    var proc = cp.spawn(command, args, options);
     proc.stdout.on('data', output_to(name, process.stdout));
     proc.stderr.on('data', output_to(name, process.stderr));
     proc.on('close', function(code) {
@@ -49,16 +51,7 @@ function spawn(name, command, args) {
 }
 
 function exec(name, command, args) {
-    // Seems like shell execution on windows while streaming to stdout and stderr is not yet supported.
-    // https://github.com/nodejs/node/issues/1009
-    args = args || [];
-    if(process.platform === 'win32')
-    {
-        return spawn(name, 'cmd.exe', [ '/c', command ].concat(args));
-    }
-    else {
-        return spawn(name, command, args);
-    }
+    return spawn(name, command, args, { shell: true });
 }
 
 gulp.task('compile_dbg', function() {
@@ -87,6 +80,7 @@ gulp.task('run_phantom_tests', function() {
     // launch phantom.js
     return spawn('phantom', phantom.path, ['phantomtest.js', 'http://localhost:7490/phantomtest.html']).promise
         .finally(function() {
+            console.log('Stopping the web test server...');
             server.proc.kill();
         });
 });
