@@ -1,5 +1,6 @@
 var _ =       require('lodash');
 var cp =      require('child_process');
+var del =     require('del');
 var fs =      require('fs');
 var gulp =    require('gulp');
 var mkdirp =  require('mkdirp');
@@ -11,6 +12,9 @@ var q =       require('q');
 var root_dir = __dirname
 var node_exec = process.execPath;
 var out_bible_dir = path.join(root_dir, 'out/bible');
+var out_prod = path.join(root_dir, 'out/prod');
+var default_parser = 'staggs';
+var default_bible_src = 'kjv-src/www.staggs.pair.com-kjbp/kjv.txt';
 
 function output_to(name, stream) {
     return function output_to(buff) {
@@ -53,6 +57,18 @@ function exec(name, command, args) {
     return spawn(name, command, args, { shell: true });
 }
 
+function biblecli(cmd, args) {
+    return spawn('biblecli-' + cmd, node_exec,
+        _.concat(['biblecli.js', cmd], _.slice(arguments, 1))).promise
+}
+
+function biblecli_task(cmd, args) {
+    args = _.slice(arguments);
+    return function biblecli_task() {
+        return biblecli.apply(null, args);
+    }
+}
+
 gulp.task('compile_dbg', function() {
     return exec('lein', 'lein', ['cljsbuild', 'auto', 'dbg']).promise;
 });
@@ -63,10 +79,8 @@ gulp.task('bible_resources_dir', function(cb) {
 
 gulp.task('bible_resources', gulp.series(
     'bible_resources_dir',
-    function prepare() {
-        return spawn('prepare', node_exec, ['biblecli.js', 'prepare', 'staggs',
-            path.join('kjv-src/www.staggs.pair.com-kjbp/kjv.txt'), 'out/bible' ]).promise;
-    }));
+    biblecli_task('prepare', default_parser, default_bible_src, 'out/bible')
+    ));
 
 gulp.task('run_node_tests', function() {
     return spawn('node', node_exec, ['nodetest.js']).promise;
@@ -74,7 +88,7 @@ gulp.task('run_node_tests', function() {
 
 gulp.task('run_phantom_tests', function() {
     // launch the web server
-    var server = spawn('serve', node_exec, ['biblecli.js', 'serve']);
+    var server = biblecli('serve');
 
     // launch phantom.js
     return spawn('phantom', phantom.path, ['phantomtest.js', 'http://localhost:7490/phantomtest.html']).promise
@@ -94,6 +108,22 @@ gulp.task('watch_tests', function() {
     return gulp.watch("out/dbg/last-compiled.txt",
         gulp.series('run_tests'));
 });
+
+gulp.task('make_prod_dir', function(cb) {
+    mkdirp(out_prod, cb);
+});
+
+gulp.task('clean_prod', function() {
+    return del([path.join(out_prod, '**'), '!' + out_prod], { cwd: root_dir });
+});
+
+gulp.task('build_prod',
+    gulp.series(
+        'clean_prod',
+        'make_prod_dir',
+        gulp.parallel(
+            biblecli_task('static', default_parser, default_bible_src, out_prod)
+            )));
 
 gulp.task('default',
    gulp.parallel(

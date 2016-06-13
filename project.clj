@@ -19,7 +19,8 @@
                        [phantomjs2 "2.2.0"]
                        [q "1.4.1"]
                        [source-map-support "0.4.0"]
-                       [uglify-js "2.6.2"]]}
+                       [uglify-js "2.6.2"]
+                       [del "2.2.0"]]}
 
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :plugins [[lein-npm "0.6.1"]
