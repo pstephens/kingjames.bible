@@ -9,6 +9,7 @@ var os =      require('os');
 var path =    require('path');
 var phantom = require('phantomjs2');
 var q =       require('q');
+var uglify =  require('uglify-js');
 
 var root_dir = __dirname
 var node_exec = process.execPath;
@@ -155,6 +156,12 @@ gulp.task('build_votd_js',
         function copy_votd_js() {
             return gulp.src(path.join(out_votd_temp, '**'))
                     .pipe(gulp.dest(path.join(out_prod, "votd")));
+        },
+        function uglify_votd_js(cb) {
+            var result = uglify.minify(path.join(out_prod, 'votd/votd.js'));
+            console.log(result.code);
+            fs.writeFileSync(path.join(out_prod, 'votd/votd.js'), result.code, {encoding: 'utf8'});
+            cb();
         }));
 
 gulp.task('build_prod',
