@@ -13,14 +13,15 @@
                  [com.cognitect/transit-cljs "0.8.237"]
                  [hiccups "0.3.0"]]
 
-  :npm {:dependencies [[gulp "gulpjs/gulp.git#4.0"]
+  :npm {:dependencies [[del "2.2.0"]
+                       [gulp "gulpjs/gulp.git#4.0"]
+                       [jasmine "2.4.1"]
                        [lodash "4.13.1"]
                        [mkdirp "0.5.1"]
                        [phantomjs2 "2.2.0"]
                        [q "1.4.1"]
                        [source-map-support "0.4.0"]
-                       [uglify-js "2.6.2"]
-                       [del "2.2.0"]]}
+                       [uglify-js "2.6.2"]]}
 
   :jvm-opts ^:replace ["-Xmx1g" "-server"]
   :plugins [[lein-npm "0.6.1"]
