@@ -15,6 +15,7 @@
 (ns biblecli.main.core
   (:require
     [cljs.nodejs :as nodejs]
+    [biblecli.commands.bucketsync]
     [biblecli.commands.normalize]
     [biblecli.commands.prepare]
     [biblecli.commands.serve]
@@ -26,7 +27,8 @@
 (def process nodejs/process)
 
 (def commands
-  {"normalize"     biblecli.commands.normalize/normalize
+  {"bucketsync"    biblecli.commands.bucketsync/sync!
+   "normalize"     biblecli.commands.normalize/normalize
    "prepare"       biblecli.commands.prepare/prepare!
    "serve"         biblecli.commands.serve/serve
    "static"        biblecli.commands.staticpages/prepare!
