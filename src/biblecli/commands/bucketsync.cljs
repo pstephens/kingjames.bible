@@ -16,12 +16,18 @@
 
 (def AWS (js/require "aws-sdk"))
 
-(defn make-s3 [] (AWS.S3.))
+(defn make-s3 [profile region]
+  (let [cfg
+          (cond-> {:region region
+                   :sslEnabled true}
+              (not= profile "default")
+              (assoc :credentials (AWS.SharedIniFileCredentials. (clj->js {:profile profile}))))]
+    (AWS.S3. (clj->js cfg))))
 
-(defn cb [err, data]
+(defn cb [err data]
   (.dir js/console err)
   (.dir js/console data))
 
-(defn sync! [profile, region, bucket]
-  (let [x (make-s3)]
-    (.listBuckets (make-s3) cb)))
+(defn sync! [dir profile region bucket]
+  (let [x (make-s3 profile region)]
+    (.listObjects x #js{:Bucket bucket} cb)))

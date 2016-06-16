@@ -178,15 +178,22 @@ gulp.task('build_votd_js',
                         .pipe(gulp.dest(votd_dir));
             })));
 
+gulp.task('build_votd',
+    gulp.parallel(
+        'copy_votd_jasmine',
+        'copy_votd_tests',
+        'build_votd_js'));
+
 gulp.task('build',
     gulp.series(
         'clean',
         'make_build_dir',
         gulp.parallel(
             biblecli_task('static', config.bible_parser, config.bible_src, build_dir),
-            'copy_votd_jasmine',
-            'copy_votd_tests',
-            'build_votd_js')));
+            'build_votd')));
+
+gulp.task('bucketsync',
+    biblecli_task('bucketsync', build_dir, config.profile, config.region, config.bucket));
 
 gulp.task('default',
    gulp.parallel(
