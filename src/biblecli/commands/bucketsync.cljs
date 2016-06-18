@@ -14,11 +14,75 @@
 
 (ns biblecli.commands.bucketsync
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [to-chan chan put! tap mult <!]]))
+  (:require [cljs.core.async :refer [to-chan chan put! tap mult <!]]
+            [clojure.string :as s]))
 
 (def AWS (js/require "aws-sdk"))
+(def fs (js/require "fs"))
+(def path (js/require "path"))
+(def process js/process)
 
-(defn list-objects-1000 [s3 continuationToken]
+(defn readdir [dir]
+  (let [chan (chan)
+        cb (fn [err data]
+             (put! chan [err data]))]
+    (.readdir fs dir cb)
+    chan))
+
+(defn stat [path]
+  (let [chan (chan)
+        cb (fn [err data]
+             (put! chan [err data]))]
+    (.stat fs path cb)
+    chan))
+
+(defn stat-file [dir reldir filename]
+  (let [fspath (.join path dir filename)
+        relpath (if (empty? reldir) filename (str reldir "/" filename))
+        statchan (stat fspath)]
+    [relpath fspath statchan]))
+
+(defn wait-all [filestatsasync]
+  (go
+    (loop [stats filestatsasync
+           acc []]
+      (let [head (first stats)
+            rest (rest stats)]
+        (if head
+          (let [[relpath fspath statchan] head
+                [err data] (<! statchan)]
+            (if err
+              [err nil]
+              (recur rest (conj acc [relpath fspath data]))))
+          [nil acc])))))
+
+(defn isdir [stat]
+  (.isDirectory stat))
+
+(defn readdir-recursive
+  ([dir] (readdir-recursive dir "" {}))
+  ([dir reldir acc]
+   (go
+     (let [[err files] (<! (readdir dir))]
+       (if err
+         [err nil]
+         (let [filestatsasync (->> files (map #(stat-file dir reldir %)) (doall))
+               [err filestats] (<! (wait-all filestatsasync))]
+           (if err
+             [err nil]
+             (loop [lst filestats acc acc]
+               (let [[relpath fspath stat] (first lst)
+                     rest (rest lst)]
+                 (if relpath
+                   (if (isdir stat)
+                     (let [[err acc] (<! (readdir-recursive fspath relpath acc))]
+                       (if err
+                         [err nil]
+                         (recur rest acc)))
+                     (recur rest (conj acc [relpath fspath])))
+                   [nil acc]))))))))))
+
+(defn s3-list-objects-1000 [s3 continuationToken]
   (let [chan (chan)
         opts (cond-> {}
                continuationToken (assoc :ContinuationToken continuationToken))
@@ -27,20 +91,21 @@
     (.listObjectsV2 s3 (clj->js opts) cb)
     chan))
 
-(defn list-objects [s3]
+(defn s3-list-objects [s3]
   (go
     (loop [acc {}
            continuationToken nil]
-      (let [[err data] (<! (list-objects-1000 s3 continuationToken))]
-        (if err {:err err}
-                (let [{contents :Contents isTruncated :IsTruncated nextToken :NextContinuationToken} (js->clj data :keywordize-keys true)
-                      acc (->> contents
-                               (reduce (fn [coll {key :Key etag :ETag}] (assoc coll key etag)) acc))]
-                  (if isTruncated
-                    (recur acc nextToken)
-                    acc)))))))
+      (let [[err data] (<! (s3-list-objects-1000 s3 continuationToken))]
+        (if err
+          [err nil]
+          (let [{contents :Contents isTruncated :IsTruncated nextToken :NextContinuationToken} (js->clj data :keywordize-keys true)
+                acc (->> contents
+                         (reduce (fn [coll {key :Key etag :ETag}] (assoc coll key etag)) acc))]
+            (if isTruncated
+              (recur acc nextToken)
+              [nil acc])))))))
 
-(defn make-s3 [profile region bucket]
+(defn make-s3-client [profile region bucket]
   (let [cfg
           (cond-> {:region region
                    :sslEnabled true
@@ -49,8 +114,32 @@
               (assoc :credentials (AWS.SharedIniFileCredentials. (clj->js {:profile profile}))))]
     (AWS.S3. (clj->js cfg))))
 
+(defn partition-files [s3keys files]
+  [(->> s3keys (filter (fn [[key _]] (not (contains? files key)))) (vec))
+   (->> files (filter (fn [[key _]] (not (contains? s3keys key)))) (vec))
+   (->> files
+        (map (fn [[key path]] (let [etag (get s3keys key :notfound)] [key path etag])))
+        (filter (fn [[_ _ etag]] (not= etag :notfound)))
+        (vec))])
+
+(defn quit-on-error [err]
+  (println err)
+  (.exit process 1))
+
+(defn quit-on-success []
+  (.exit process 0))
+
 (defn sync! [dir profile region bucket]
-  (let [s3 (make-s3 profile region bucket)]
-    (go
-      (let [keys (<! (list-objects s3))]
-        (println (count keys))))))
+  (go
+    (let [s3 (make-s3-client profile region bucket)
+          s3ObjectsTask (s3-list-objects s3)
+          filesTask (readdir-recursive dir)
+          [err1 s3keys] (<! s3ObjectsTask)
+          [err2 files] (<! filesTask)]
+      (if err1 (quit-on-error err1))
+      (if err2 (quit-on-error err2))
+      (let [[onlyremote onlylocal both] (partition-files s3keys files)]
+        (println "Remote: " (s/join onlyremote " | "))
+        (println "Local: " (s/join onlylocal " | "))
+        (println "Both: " (s/join both " | "))
+        (quit-on-success)))))
