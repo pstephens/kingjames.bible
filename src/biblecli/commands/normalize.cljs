@@ -16,5 +16,16 @@
   (:require
     [common.normalizer.core :refer [run-parser]]))
 
-(defn normalize [parser path output]
-  (run-parser parser path output))
+(defn normalize
+  {:summary "Convert raw bible source text into a normalized format. Used to compare the quality of different kjv texts."
+   :doc "usage: biblecli normalize [--parser <parser>] [--input <input-path>] <output-path>
+   --parser <parser>      Parser. Defaults to 'staggs'.
+   --input <input-path>   Input path. Defaults to './kjv-src/www.staggs.pair.com-kjbp/kjv.txt'
+   <output-path>          Output path."
+   :cmdline-opts {:string ["parser" "input"]
+                  :default {:parser "staggs"
+                            :input "./kjv-src/www.staggs.pair.com-kjbp/kjv.txt"}}}
+  [{parser :parser input :input output :_}]
+  (if (not= (count output) 1)
+    (throw "<output-Path> parameter required."))
+  (run-parser parser input (first output)))

@@ -34,16 +34,23 @@
         (println
           (str "  " command ws " " summary))))))
 
+(defn printcommandnotfound [command]
+  (println (str "Command '" command "' not found."))
+
 (defn printcommandhelp [command]
   (let [fn (get commands command)
         meta (meta fn)
         docs (:doc meta)]
     (cond
-      (not fn) (println (str "Command '" command "' not found."))
+      (not fn) (printcommandnotfound command))
       (not docs) (println (str "No documentation for command '" command "'."))
       :else (println docs))))
 
-(defn printhelp [{commands :_}]
+(defn printhelp
+  {:summary "Print out help for a command."
+   :doc "usage: biblecli help [<command>]
+   <command>   Print help information for this command. Lists all commands if none are specified."}
+  [{commands :_}]
   (if (<= (count commands) 0)
     (do
       (println "usage: biblecli <command> [<args>]")
@@ -77,7 +84,9 @@
           args (parse-commandline args opts)]
       (if fn
         (fn args)
-        (throw (str "Failed to find command '" command "'."))))
+        (do
+          (printcommandnotfound command)
+          (printallcommands))))
     (catch :default e
       (do
         (prn e)
