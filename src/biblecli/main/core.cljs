@@ -14,7 +14,7 @@
 
 (ns biblecli.main.core
   (:require
-    [cljs.nodejs :as nodejs]
+    [cljs.nodejs :refer [process require enable-util-print!]]
     [biblecli.commands.bucketsync]
     [biblecli.commands.normalize]
     [biblecli.commands.prepare]
@@ -22,23 +22,61 @@
     [biblecli.commands.staticpages]
     [biblecli.commands.verseoftheday]))
 
-(nodejs/enable-util-print!)
+(declare commands)
 
-(def process nodejs/process)
+(defn printallcommands []
+  (let [maxchars (reduce #(max %1 (count %2)) 0 (keys commands))]
+    (println "All commands:")
+    (doseq [[command fn] commands]
+      (let [padleft (- maxchars (count command))
+            ws (apply str (repeat padleft " "))
+            summary (:summary (meta fn))]
+        (println
+          (str "  " command ws " " summary))))))
+
+(defn printcommandhelp [command]
+  (let [fn (get commands command)
+        meta (meta fn)
+        docs (:doc meta)]
+    (cond
+      (not fn) (println (str "Command '" command "' not found."))
+      (not docs) (println (str "No documentation for command '" command "'."))
+      :else (println docs))))
+
+(defn printhelp [{commands :_}]
+  (if (<= (count commands) 0)
+    (do
+      (println "usage: biblecli <command> [<args>]")
+      (printallcommands))
+    (doseq [command commands]
+      (printcommandhelp command))))
 
 (def commands
-  {"bucketsync"    biblecli.commands.bucketsync/sync!
-   "normalize"     biblecli.commands.normalize/normalize
-   "prepare"       biblecli.commands.prepare/prepare!
-   "serve"         biblecli.commands.serve/serve
-   "static"        biblecli.commands.staticpages/prepare!
-   "verseoftheday" biblecli.commands.verseoftheday/prepare!})
+  {"bucketsync"    #'biblecli.commands.bucketsync/bucketsync
+   "help"          #'printhelp
+   "normalize"     #'biblecli.commands.normalize/normalize
+   "prepare"       #'biblecli.commands.prepare/prepare!
+   "serve"         #'biblecli.commands.serve/serve
+   "static"        #'biblecli.commands.staticpages/prepare!
+   "verseoftheday" #'biblecli.commands.verseoftheday/prepare!})
+
+(defn parse-commandline [args opts]
+  (let [opts (if opts opts #js{})
+        args (if (nil? args)
+               #js[]
+               (clj->js args))
+        minimist (require "minimist")
+        processed-args (minimist args opts)]
+    (js->clj processed-args :keywordize-keys true)))
 
 (defn- main [command & args]
+  (enable-util-print!)
   (try
-    (let [cmd (commands command)]
-      (if cmd
-        (apply cmd args)
+    (let [fn (commands command)
+          opts (clj->js (:cmdline-opts (meta fn)))
+          args (parse-commandline args opts)]
+      (if fn
+        (fn args)
         (throw (str "Failed to find command '" command "'."))))
     (catch :default e
       (do

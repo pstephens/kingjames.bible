@@ -129,9 +129,29 @@
 (defn quit-on-success []
   (.exit process 0))
 
-(defn sync! [dir profile region bucket]
+(defn bucketsync
+  {:summary "Synchronize a remote Amazon S3 bucket with a local asset directory."
+   :doc "usage: biblecli bucketsync [--force] [-f] [--whatif] [--bucket <bucket>] [--region <region>] [--profile <profile>] <dir>
+   -f,
+   --force               Upload all files, changed and unchanged, generally to refresh the http headers.
+   --whatif              Print bucket changes that would be made without actually making changes.
+   --bucket <bucket>     S3 bucket id. Defaults to kingjames-beta.
+   --region <region>     S3 region. Defaults to us-east-1.
+   --profile <profile>   S3 credentials profile. Uses the default profile if not specified.
+   <dir>                 Source asset directory."
+   :async true
+   :cmdline-opts {:boolean ["force" "whatif"]
+                  :string ["bucket" "region" "profile"]
+                  :alias {:force "f"}
+                  :default {:bucket "kingjames-beta"
+                            :region "us-east-1"
+                            :profile "default"}}}
+  [{dir :_ force :force whatif :whatif bucket :bucket region :region profile :profile}]
+  (if (not= (count dir) 1)
+    (throw "<dir> parameter required."))
   (go
-    (let [s3 (make-s3-client profile region bucket)
+    (let [dir (first dir)
+          s3 (make-s3-client profile region bucket)
           s3ObjectsTask (s3-list-objects s3)
           filesTask (readdir-recursive dir)
           [err1 s3keys] (<! s3ObjectsTask)
