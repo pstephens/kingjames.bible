@@ -20,7 +20,9 @@
     [biblecli.commands.prepare]
     [biblecli.commands.serve]
     [biblecli.commands.staticpages]
-    [biblecli.commands.verseoftheday]))
+    [biblecli.commands.verseoftheday]
+    [biblecli.main.utility :as u]
+    [clojure.string :as s]))
 
 (declare commands)
 
@@ -35,16 +37,24 @@
           (str "  " command ws " " summary))))))
 
 (defn printcommandnotfound [command]
-  (println (str "Command '" command "' not found."))
+  (println (str "Command '" command "' not found.")))
+
+(defn replace-doc-params [str]
+  (let [f #(case %1
+                 "{{default-parser}}" (u/default-parser)
+                 "{{default-parser-input}}" (u/default-parser-input-rel))]
+    (if str
+      (s/replace str #"\{\{[^\}]+\}\}" f)
+      nil)))
 
 (defn printcommandhelp [command]
   (let [fn (get commands command)
         meta (meta fn)
         docs (:doc meta)]
     (cond
-      (not fn) (printcommandnotfound command))
+      (not fn) (printcommandnotfound command)
       (not docs) (println (str "No documentation for command '" command "'."))
-      :else (println docs))))
+      :else (println (replace-doc-params docs)))))
 
 (defn printhelp
   {:summary "Print out help for a command."
@@ -62,7 +72,7 @@
   {"bucketsync"    #'biblecli.commands.bucketsync/bucketsync
    "help"          #'printhelp
    "normalize"     #'biblecli.commands.normalize/normalize
-   "prepare"       #'biblecli.commands.prepare/prepare!
+   "prepare"       #'biblecli.commands.prepare/prepare
    "serve"         #'biblecli.commands.serve/serve
    "static"        #'biblecli.commands.staticpages/prepare!
    "verseoftheday" #'biblecli.commands.verseoftheday/prepare!})

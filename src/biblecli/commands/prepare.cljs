@@ -14,6 +14,7 @@
 
 (ns biblecli.commands.prepare
   (:require
+    [biblecli.main.utility :as u]
     [common.bible.resource :as res]
     [common.normalizer.core :refer [parse]]))
 
@@ -29,10 +30,24 @@
   (let [filepath (.join node-path dir "bible-meta.json")]
     (.writeFileSync node-fs filepath buffer)))
 
-(defn prepare! [parser src output-dir]
-  (let [m (parse parser src)
-        r (res/build-resources m)
-        metadata (res/metadata->buffer r)]
-    (write-metadata! output-dir metadata)
-    (doseq [part (vals r)]
-      (write-data! output-dir part))))
+(defn prepare
+  {:summary "Write bible content in web browser ready chunks of json/transit data."
+   :doc "usage: biblecli prepare [--parser <parser>] [--input <input-path>] <output-path>
+   --parser <parser>     Parser. Defaults to '{{default-parser}}'.
+   --input <input-path   Input path. Defaults to '{{default-parser-input}}'.
+   <output-path>         Output directory to place data files."
+   :cmdline-opts {:string ["parser" "input"]
+                  :default {:parser nil
+                            :input nil}}}
+  [{parser :parser src :input output-dir :_}]
+  (let [parser (or parser (u/default-parser))
+        src  (or src (u/default-parser-input))]
+    (if (not= (count output-dir) 1)
+      (throw "Must have exactly one <output-path> parameter."))
+    (let [m (parse parser src)
+          r (res/build-resources m)
+          metadata (res/metadata->buffer r)
+          output-dir (first output-dir)]
+      (write-metadata! output-dir metadata)
+      (doseq [part (vals r)]
+        (write-data! output-dir part)))))

@@ -14,18 +14,23 @@
 
 (ns biblecli.commands.normalize
   (:require
+    [biblecli.main.utility :as u]
     [common.normalizer.core :refer [run-parser]]))
 
 (defn normalize
   {:summary "Convert raw bible source text into a normalized format. Used to compare the quality of different kjv texts."
    :doc "usage: biblecli normalize [--parser <parser>] [--input <input-path>] <output-path>
-   --parser <parser>      Parser. Defaults to 'staggs'.
-   --input <input-path>   Input path. Defaults to './kjv-src/www.staggs.pair.com-kjbp/kjv.txt'
+   --parser <parser>      Parser. Defaults to '{{default-parser}}'.
+   --input <input-path>   Input path. Defaults to '{{default-parser-input}}'.
    <output-path>          Output path."
    :cmdline-opts {:string ["parser" "input"]
-                  :default {:parser "staggs"
-                            :input "./kjv-src/www.staggs.pair.com-kjbp/kjv.txt"}}}
+                  :default {:parser nil
+                            :input nil}}}
   [{parser :parser input :input output :_}]
-  (if (not= (count output) 1)
-    (throw "<output-Path> parameter required."))
-  (run-parser parser input (first output)))
+  (let [parser (or parser (u/default-parser))
+        input  (or input (:full-path (u/default-parser-input)))]
+    (if (not= (count output) 1)
+      (throw "Must have exactly one <output-path> parameter."))
+    (println "parser" parser)
+    (println "input" input)
+    (run-parser parser input (first output))))
