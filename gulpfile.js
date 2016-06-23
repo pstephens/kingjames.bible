@@ -80,13 +80,13 @@ function exec(name, command, args) {
 
 function biblecli(cmd, args) {
     return spawn('biblecli-' + cmd, node_exec_path,
-        _.concat(['biblecli.js', cmd], _.slice(arguments, 1))).promise
+        _.concat(['biblecli.js', cmd], _.slice(arguments, 1)));
 }
 
 function biblecli_task(cmd, args) {
     args = _.slice(arguments);
     return function biblecli_task() {
-        return biblecli.apply(null, args);
+        return biblecli.apply(null, args).promise;
     }
 }
 
@@ -104,7 +104,7 @@ gulp.task('bible_resources_dir', mkdir_task(out_bible_dir));
 
 gulp.task('bible_resources', gulp.series(
     'bible_resources_dir',
-    biblecli_task('prepare', config.bible_parser, config.bible_src, 'out/bible')
+    biblecli_task('prepare', 'out/bible')
     ));
 
 gulp.task('run_node_tests', function() {
@@ -166,7 +166,7 @@ gulp.task('copy_votd_tests', function copy_votd_tests() {
 gulp.task('build_votd_js',
     gulp.series(
         'make_temp_votd_dir',
-        biblecli_task('verseoftheday', config.bible_parser, config.bible_src, 'src/votd/verse-list.md', temp_votd_dir),
+        biblecli_task('verseoftheday', 'src/votd/verse-list.md', temp_votd_dir),
         gulp.parallel(
             function copy_client_html() {
                 return gulp.src(path.join(temp_votd_dir, 'client.html'))
@@ -189,11 +189,15 @@ gulp.task('build',
         'clean',
         'make_build_dir',
         gulp.parallel(
-            biblecli_task('static', config.bible_parser, config.bible_src, build_dir),
+            biblecli_task('static', build_dir),
             'build_votd')));
 
 gulp.task('bucketsync',
-    biblecli_task('bucketsync', build_dir, config.profile, config.region, config.bucket));
+    biblecli_task('bucketsync',
+        '--profile', config.profile,
+        '--region', config.region,
+        '--bucket', config.bucket,
+        build_dir));
 
 gulp.task('default',
    gulp.parallel(
