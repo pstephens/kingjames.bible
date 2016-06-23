@@ -17,7 +17,8 @@
   (:require
     [clojure.string :as s]
     [common.normalizer.core :refer [parse]]
-    [hiccups.runtime :as hiccupsrt]))
+    [hiccups.runtime :as hiccupsrt]
+    [biblecli.main.utility :as u]))
 
 (def node-fs (js/require "fs"))
 (def node-path (js/require "path"))
@@ -228,8 +229,24 @@ base-url
 (defn readlines [filepath]
   (.readFileSync node-fs filepath (js-obj "encoding" "utf8")))
 
-(defn prepare! [parser src input-verse-list output-dir]
-  (let [m (parse parser src)
+(defn verseoftheday
+  {:summary "Generate the 'Verse of the Day' embeddable JavaScript program given a list of verses. Includes a sample 'client.html'."
+   :doc "usage: biblecli verseoftheday [--parser <parser>] [--input <input-path>] <verselist> <output-path>
+   --parser <parser>      Parser. Defaults to '{{default-parser}}'.
+   --input <input-path>   Input path. Defaults to '{{default-parser-input}}'.
+   <verselist>            The verse list. Each line should follow the form '* https://kingjames.bible/Genesis-1#1'.
+   <output-path>          Output directory to place the resource files."
+   :cmdline-opts {:string ["parser" "input"]
+                  :default {:parser nil
+                            :input nil}}}
+  [{parser :parser src :input paths :_}]
+  (if (< (count paths) 2)
+    (throw "The <verselist> and <output-path> parameters are required."))
+  (let [parser (or parser (u/default-parser))
+        src  (or src (u/default-parser-input))
+        input-verse-list (paths 0)
+        output-dir (paths 1)
+        m (parse parser src)
         verse-refs (->> (readlines input-verse-list) (s/split-lines))
         verse-data (format-verses verse-refs m)]
     (write! output-dir "votd.js" (votd-js verse-data base-url))

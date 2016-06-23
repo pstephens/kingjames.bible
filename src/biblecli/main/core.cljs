@@ -75,7 +75,7 @@
    "prepare"       #'biblecli.commands.prepare/prepare
    "serve"         #'biblecli.commands.serve/serve
    "static"        #'biblecli.commands.staticpages/static
-   "verseoftheday" #'biblecli.commands.verseoftheday/prepare!})
+   "verseoftheday" #'biblecli.commands.verseoftheday/verseoftheday})
 
 (defn parse-commandline [args opts]
   (let [opts (if opts opts #js{})
