@@ -34,7 +34,7 @@
             ws (apply str (repeat padleft " "))
             summary (:summary (meta fn))]
         (println
-          (str "  " command ws " " summary))))))
+          (str "  " command ws "   " summary))))))
 
 (defn printcommandnotfound [command]
   (println (str "Command '" command "' not found.")))
@@ -74,7 +74,7 @@
    "normalize"     #'biblecli.commands.normalize/normalize
    "prepare"       #'biblecli.commands.prepare/prepare
    "serve"         #'biblecli.commands.serve/serve
-   "static"        #'biblecli.commands.staticpages/prepare!
+   "static"        #'biblecli.commands.staticpages/static
    "verseoftheday" #'biblecli.commands.verseoftheday/prepare!})
 
 (defn parse-commandline [args opts]

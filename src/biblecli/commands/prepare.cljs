@@ -34,20 +34,20 @@
   {:summary "Write bible content in web browser ready chunks of json/transit data."
    :doc "usage: biblecli prepare [--parser <parser>] [--input <input-path>] <output-path>
    --parser <parser>     Parser. Defaults to '{{default-parser}}'.
-   --input <input-path   Input path. Defaults to '{{default-parser-input}}'.
+   --input <input-path>  Input path. Defaults to '{{default-parser-input}}'.
    <output-path>         Output directory to place data files."
    :cmdline-opts {:string ["parser" "input"]
                   :default {:parser nil
                             :input nil}}}
   [{parser :parser src :input output-dir :_}]
+  (if (not= (count output-dir) 1)
+    (throw "Must have exactly one <output-path> parameter."))
   (let [parser (or parser (u/default-parser))
-        src  (or src (u/default-parser-input))]
-    (if (not= (count output-dir) 1)
-      (throw "Must have exactly one <output-path> parameter."))
-    (let [m (parse parser src)
-          r (res/build-resources m)
-          metadata (res/metadata->buffer r)
-          output-dir (first output-dir)]
-      (write-metadata! output-dir metadata)
-      (doseq [part (vals r)]
-        (write-data! output-dir part)))))
+        src  (or src (u/default-parser-input))
+        m (parse parser src)
+        r (res/build-resources m)
+        metadata (res/metadata->buffer r)
+        output-dir (first output-dir)]
+    (write-metadata! output-dir metadata)
+    (doseq [part (vals r)]
+      (write-data! output-dir part))))
