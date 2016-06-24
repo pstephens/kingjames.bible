@@ -15,13 +15,12 @@
 (ns biblecli.commands.bucketsync
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [to-chan chan put! tap mult <!]]
-            [cljs.nodejs :refer [require]]
+            [cljs.nodejs :refer [require process]]
             [clojure.string :as s]))
 
-(def AWS (js/require "aws-sdk"))
-(def fs (js/require "fs"))
-(def path (js/require "path"))
-(def process js/process)
+(def AWS (require "aws-sdk"))
+(def fs (require "fs"))
+(def path (require "path"))
 
 (defn readdir [dir]
   (let [chan (chan)
@@ -123,24 +122,45 @@
         (filter (fn [[_ _ etag]] (not= etag :notfound)))
         (vec))])
 
+(defn delete-files [s3 onlyremote delete whatif verbose]
+  (go
+    (println onlyremote)
+    (let [parts (partition-all 1000 onlyremote)]
+      (loop [part (first parts)
+             next (rest parts)]
+        (if (not part)
+          [nil true]
+          (do
+            (doseq [key part]
+              (println (str (if whatif "Whatif: " "") "Deleting '" key "' from remote bucket.")))
+            (recur (first next) (rest next))))))))
+
+(defn copy-files [s3 onlylocal whatif]
+  (go))
+
+(defn update-files-if-changed [s3 filelist whatif force verbose]
+  (go))
+
 (defn bucketsync
   {:summary "Synchronize a remote Amazon S3 bucket with a local asset directory."
-   :doc "usage: biblecli bucketsync [--force] [-f] [--whatif] [--bucket <bucket>] [--region <region>] [--profile <profile>] <dir>
+   :doc "usage: biblecli bucketsync [--force] [-f] [--whatif] [--delete] [--verbose] [--bucket <bucket>] [--region <region>] [--profile <profile>] <dir>
    -f,
    --force               Upload all files, changed and unchanged, generally to refresh the http headers.
    --whatif              Print bucket changes that would be made without actually making changes.
+   --delete              Remote files that do not exist locally will be deleted.
+   --verbose             Print verbose status messages.
    --bucket <bucket>     S3 bucket id. Defaults to kingjames-beta.
    --region <region>     S3 region. Defaults to us-east-1.
    --profile <profile>   S3 credentials profile. Uses the default profile if not specified.
    <dir>                 Source asset directory."
    :async true
-   :cmdline-opts {:boolean ["force" "whatif"]
+   :cmdline-opts {:boolean ["force" "whatif" "delete" "verbose"]
                   :string ["bucket" "region" "profile"]
-                  :alias {:force "f"}
+                  :alias {:force "f" :verbose "v"}
                   :default {:bucket "kingjames-beta"
                             :region "us-east-1"
                             :profile "default"}}}
-  [{dir :_ force :force whatif :whatif bucket :bucket region :region profile :profile}]
+  [{dir :_ force :force whatif :whatif delete :delete bucket :bucket region :region profile :profile verbose :verbose}]
   (go
     (if (not= (count dir) 1)
       ["<dir> parameter required." nil]
@@ -149,13 +169,18 @@
             s3ObjectsTask (s3-list-objects s3)
             filesTask (readdir-recursive dir)
             [err1 s3keys] (<! s3ObjectsTask)
-            [err2 files] (<! filesTask)]
-        (cond
-          err1 [err1 nil]
-          err2 [err2 nil]
-          :else
-            (let [[onlyremote onlylocal both] (partition-files s3keys files)]
-              (println "Remote: " (s/join onlyremote " | "))
-              (println "Local: " (s/join onlylocal " | "))
-              (println "Both: " (s/join both " | "))
-              [nil true]))))))
+            [err2 files] (<! filesTask)
+            firstErr (or err1 err2)]
+        (if firstErr
+          [firstErr nil]
+          (let [[onlyremote onlylocal both] (partition-files s3keys files)
+                deleteTask (delete-files s3 onlyremote delete whatif verbose)
+                copyTask (copy-files s3 onlylocal whatif)
+                updateTask (update-files-if-changed s3 both whatif force verbose)
+                [deleteErr _] (<! deleteTask)
+                [copyErr _] (<! copyTask)
+                [updateErr _] (<! updateTask)
+                firstErr (or deleteErr copyErr updateErr)]
+            (if firstErr
+              [firstErr nil]
+              [nil true])))))))
