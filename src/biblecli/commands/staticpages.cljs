@@ -16,12 +16,13 @@
   (:require-macros [hiccups.core :as hiccups :refer [html]])
   (:require
     [biblecli.main.utility :as u]
+    [cljs.nodejs :refer [require]]
     [clojure.string :as s]
     [common.normalizer.core :refer [parse]]
     [hiccups.runtime :as hiccupsrt]))
 
-(def node-fs (js/require "fs"))
-(def node-path (js/require "path"))
+(def node-fs (require "fs"))
+(def node-path (require "path"))
 
 (defn style []
 "body {
@@ -457,8 +458,6 @@ ga('send', 'pageview');")
 
 (defn chapter
   [{book-id :book-id
-    chap-num :num
-    chap-cnt :chap-cnt
     verses :verses
     :as ch}
     prev-ch

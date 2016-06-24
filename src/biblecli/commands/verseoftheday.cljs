@@ -13,15 +13,16 @@
 ;;;;   limitations under the License.
 
 (ns biblecli.commands.verseoftheday
-  (:require-macros [hiccups.core :as hiccups :refer [html]])
+  (:require-macros [hiccups.core :refer [html]])
   (:require
+    [cljs.nodejs :refer [require]]
     [clojure.string :as s]
     [common.normalizer.core :refer [parse]]
-    [hiccups.runtime :as hiccupsrt]
+    [hiccups.runtime]
     [biblecli.main.utility :as u]))
 
-(def node-fs (js/require "fs"))
-(def node-path (js/require "path"))
+(def node-fs (require "fs"))
+(def node-path (require "path"))
 
 (def base-url "https://kingjames.bible/")
 

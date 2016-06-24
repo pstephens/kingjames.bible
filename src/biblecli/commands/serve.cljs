@@ -15,12 +15,13 @@
 (ns biblecli.commands.serve
   (:require
     [biblecli.main.utility :refer [get-root-path]]
+    [cljs.nodejs :refer [require]]
     [common.asset.bible :as bible-res]
     [common.asset.directory :as dir]
     [common.asset.server :as server]
     [test.asset.testpages :as testpages]))
 
-(def node-path (js/require "path"))
+(def node-path (require "path"))
 
 (defn serve
   {:summary "Serve static resources using HTTP presumably for integration testing."

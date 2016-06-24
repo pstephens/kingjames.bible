@@ -15,6 +15,7 @@
 (ns biblecli.commands.bucketsync
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [to-chan chan put! tap mult <!]]
+            [cljs.nodejs :refer [require]]
             [clojure.string :as s]))
 
 (def AWS (js/require "aws-sdk"))
@@ -122,13 +123,6 @@
         (filter (fn [[_ _ etag]] (not= etag :notfound)))
         (vec))])
 
-(defn quit-on-error [err]
-  (println err)
-  (.exit process 1))
-
-(defn quit-on-success []
-  (.exit process 0))
-
 (defn bucketsync
   {:summary "Synchronize a remote Amazon S3 bucket with a local asset directory."
    :doc "usage: biblecli bucketsync [--force] [-f] [--whatif] [--bucket <bucket>] [--region <region>] [--profile <profile>] <dir>
@@ -147,19 +141,21 @@
                             :region "us-east-1"
                             :profile "default"}}}
   [{dir :_ force :force whatif :whatif bucket :bucket region :region profile :profile}]
-  (if (not= (count dir) 1)
-    (throw "<dir> parameter required."))
   (go
-    (let [dir (first dir)
-          s3 (make-s3-client profile region bucket)
-          s3ObjectsTask (s3-list-objects s3)
-          filesTask (readdir-recursive dir)
-          [err1 s3keys] (<! s3ObjectsTask)
-          [err2 files] (<! filesTask)]
-      (if err1 (quit-on-error err1))
-      (if err2 (quit-on-error err2))
-      (let [[onlyremote onlylocal both] (partition-files s3keys files)]
-        (println "Remote: " (s/join onlyremote " | "))
-        (println "Local: " (s/join onlylocal " | "))
-        (println "Both: " (s/join both " | "))
-        (quit-on-success)))))
+    (if (not= (count dir) 1)
+      ["<dir> parameter required." nil]
+      (let [dir (first dir)
+            s3 (make-s3-client profile region bucket)
+            s3ObjectsTask (s3-list-objects s3)
+            filesTask (readdir-recursive dir)
+            [err1 s3keys] (<! s3ObjectsTask)
+            [err2 files] (<! filesTask)]
+        (cond
+          err1 [err1 nil]
+          err2 [err2 nil]
+          :else
+            (let [[onlyremote onlylocal both] (partition-files s3keys files)]
+              (println "Remote: " (s/join onlyremote " | "))
+              (println "Local: " (s/join onlylocal " | "))
+              (println "Both: " (s/join both " | "))
+              [nil true]))))))

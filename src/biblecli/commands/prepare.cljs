@@ -14,12 +14,13 @@
 
 (ns biblecli.commands.prepare
   (:require
+    [cljs.nodejs :refer [require]]
     [biblecli.main.utility :as u]
     [common.bible.resource :as res]
     [common.normalizer.core :refer [parse]]))
 
-(def node-fs (js/require "fs"))
-(def node-path (js/require "path"))
+(def node-fs (require "fs"))
+(def node-path (require "path"))
 
 (defn write-data! [dir encoded-data]
   (let [filename (subs (encoded-data :path) 1)

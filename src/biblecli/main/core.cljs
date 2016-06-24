@@ -13,7 +13,9 @@
 ;;;;   limitations under the License.
 
 (ns biblecli.main.core
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
+    [cljs.core.async :refer [<!]]
     [cljs.nodejs :refer [process require enable-util-print!]]
     [biblecli.commands.bucketsync]
     [biblecli.commands.normalize]
@@ -86,21 +88,33 @@
         processed-args (minimist args opts)]
     (js->clj processed-args :keywordize-keys true)))
 
+(defn run-command [fn isAsync args]
+  (if isAsync
+    (go
+      (let [[err _] (<! (fn args))]
+        (if err
+          (do
+            (println err)
+            (.exit process 1)))))
+    (fn args)))
+
 (defn- main [command & args]
   (enable-util-print!)
   (try
     (let [fn (commands command)
-          opts (clj->js (:cmdline-opts (meta fn)))
+          fnmeta (meta fn)
+          opts (clj->js (:cmdline-opts fnmeta))
+          isAsync (:async fnmeta)
           args (parse-commandline args opts)]
       (if fn
-        (fn args)
+        (run-command fn isAsync args)
         (do
           (printcommandnotfound command)
           (printallcommands))))
     (catch :default e
       (do
-        (prn e)
-        (prn (.-stack e))
+        (println e)
+        (println (.-stack e))
         (.exit process 1)))))
 
 (set! *main-cli-fn* main)
