@@ -13,8 +13,8 @@
 ;;;;   limitations under the License.
 
 (ns biblecli.commands.bucketsync
-  (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [to-chan chan put! tap mult <!]]
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
+  (:require [cljs.core.async :refer [to-chan chan put! tap mult <! buffer onto-chan] :as async]
             [cljs.nodejs :refer [require process]]
             [clojure.string :as s]))
 
@@ -115,31 +115,127 @@
     (AWS.S3. (clj->js cfg))))
 
 (defn partition-files [s3keys files]
-  [(->> s3keys (filter (fn [[key _]] (not (contains? files key)))) (vec))
-   (->> files (filter (fn [[key _]] (not (contains? s3keys key)))) (vec))
-   (->> files
-        (map (fn [[key path]] (let [etag (get s3keys key :notfound)] [key path etag])))
-        (filter (fn [[_ _ etag]] (not= etag :notfound)))
-        (vec))])
+  (let [to-delete (->> s3keys (filter (fn [[key _]] (not (contains? files key)))) (vec))
+        to-copy   (->> files (filter (fn [[key _]] (not (contains? s3keys key)))) (vec))
+        to-update (->> files
+                    (map (fn [[key path]] (let [etag (get s3keys key :notfound)] [key path etag])))
+                    (filter (fn [[_ _ etag]] (not= etag :notfound)))
+                    (vec))]
+    [to-delete to-copy to-update]))
 
-(defn delete-files [s3 onlyremote delete whatif verbose]
+(defn log-action [pred whatif verbose & parts]
+  (if pred
+    (let [parts (cond->> (list* parts)
+                         whatif (cons "Whatif: ")
+                         verbose (list* (.toISOString (js/Date.)) " "))]
+      (println (apply str parts)))))
+
+(defn perform-action [chan]
+  (go-loop []
+    (if-let [f (<! chan)]
+      (let [[err _] (<! (f))]
+        (if err
+          [err nil]
+          (recur)))
+      [nil true])))
+
+(defn perform-actions [n coll]
   (go
-    (println onlyremote)
-    (let [parts (partition-all 1000 onlyremote)]
-      (loop [part (first parts)
-             next (rest parts)]
-        (if (not part)
-          [nil true]
-          (do
-            (doseq [key part]
-              (println (str (if whatif "Whatif: " "") "Deleting '" key "' from remote bucket.")))
-            (recur (first next) (rest next))))))))
+    (let [ch (to-chan coll)
+          workers (->> (range n) (map (fn [_] (perform-action ch))) (vec))]
+      (let [results (<! (async/map (fn [err _] err) workers))
+            err (reduce #(or %1 %2) nil results)
+            res (if err nil true)]
+        [err res]))))
 
-(defn copy-files [s3 onlylocal whatif]
-  (go))
+(defn object-props [content-type max-age]
+  {:content-type content-type
+   :max-age max-age})
 
-(defn update-files-if-changed [s3 filelist whatif force verbose]
-  (go))
+(defn calc-object-props [key]
+  (cond
+    ; should increase the max-age after things stabilize
+    (or (re-find #"\.html$" key) (re-find #"^[^.]+$" key)) (object-props "text/html;charset=utf-8" 600)
+    (re-find #"\.css$" key) (object-props "text/css;charset=utf-8" 600)
+    (re-find #"\.js$" key) (object-props "text/javascript" 600)
+    (re-find #"\.png" key) (object-props "image/png" 600)
+    (re-find #"\.txt$" key) (object-props "text/plain" 600)
+    (re-find #"\.xml$" key) (object-props "application/xml" 600)
+    :else nil))
+
+(defn calc-md5-digest [buffer]
+  (let [crypto (require "crypto")
+        hash (.createHash crypto "md5")]
+    (.update hash buffer)
+    (.digest hash)))
+
+(defn put-s3-object [s3 key buffer md5buffer]
+  (let [props (calc-object-props key)
+        content-md5 (.toString md5buffer "base64")
+        ch (chan)
+        cb (fn [err data] (put! ch [err data]))]
+    (if props
+      (.putObject
+        s3
+        #js {:ACL "public-read"
+             :Body buffer
+             :CacheControl (str "max-age=" (:max-age props))
+             :ContentMD5 content-md5
+             :ContentType (:content-type props)
+             :Key key
+             :StorageClass "STANDARD"}
+        cb)
+      (cb (str "Could not resolve content-type for '" key "'.") nil))
+    ch))
+
+(defn read-local-file [path]
+  (let [ch (chan)
+        cb (fn [err data] (put! ch [err data]))]
+    (.readFile fs path cb)
+    ch))
+
+(defn make-delete-file-action [s3 keys should-delete whatif verbose]
+  (fn delete []
+    (go
+      (let [msg (if verbose
+                  (str "deleting S3 object(s) '" (s/join keys "', '") "'")
+                  (str "deleting " (count keys) " S3 object(s)"))]
+        (log-action (not should-delete) whatif verbose "Skipped " msg ". Use the --delete option.")
+        (log-action should-delete whatif verbose "Started " msg ".")
+
+        (log-action (and should-delete verbose) whatif verbose "Finished " msg ".")
+        [nil true]))))
+
+(defn make-copy-file-action [s3 [relpath filepath] whatif verbose]
+  (fn copy []
+    (go
+      (let [msg (str "copying '" relpath "' to S3")]
+        (log-action true whatif verbose "Started " msg ".")
+        (let [[err buff] (<! (read-local-file filepath))]
+          (if err
+            (do
+              (log-action true whatif verbose "Failed to read local file '" filepath "'. " err)
+              [err nil])
+            (let [md5buff (calc-md5-digest buff)
+                  [err _] (if whatif
+                            [nil true]
+                            (<! (put-s3-object s3 relpath buff md5buff)))]
+              (if err
+                (do
+                  (log-action true whatif  verbose "Failed while " msg ". " err)
+                  [err nil])
+                (do
+                  (log-action verbose whatif  verbose "Finished " msg ".")
+                  [nil true])))))))))
+
+(defn make-update-file-action [s3 [relpath filepath etag] force whatif verbose]
+  (fn update []
+    (go
+      (let [msg (str "updating '" relpath "' to S3")]
+        (log-action verbose whatif verbose "Comparing local '" relpath "' with remote.")
+        (log-action true whatif verbose "Started " msg ".")
+        (log-action verbose whatif verbose "Finished " msg ".")
+        [nil true]))))
 
 (defn bucketsync
   {:summary "Synchronize a remote Amazon S3 bucket with a local asset directory."
@@ -160,7 +256,7 @@
                   :default {:bucket "kingjames-beta"
                             :region "us-east-1"
                             :profile "default"}}}
-  [{dir :_ force :force whatif :whatif delete :delete bucket :bucket region :region profile :profile verbose :verbose}]
+  [{dir :_ force :force whatif :whatif delete :delete bucket :bucket region :region profile :profile verbose :verbose :as f}]
   (go
     (if (not= (count dir) 1)
       ["<dir> parameter required." nil]
@@ -174,13 +270,13 @@
         (if firstErr
           [firstErr nil]
           (let [[onlyremote onlylocal both] (partition-files s3keys files)
-                deleteTask (delete-files s3 onlyremote delete whatif verbose)
-                copyTask (copy-files s3 onlylocal whatif)
-                updateTask (update-files-if-changed s3 both whatif force verbose)
-                [deleteErr _] (<! deleteTask)
-                [copyErr _] (<! copyTask)
-                [updateErr _] (<! updateTask)
-                firstErr (or deleteErr copyErr updateErr)]
-            (if firstErr
-              [firstErr nil]
-              [nil true])))))))
+                actions (->>
+                          (concat
+                            (map #(make-copy-file-action s3 % whatif verbose) onlylocal)
+                            (->> onlyremote
+                                 (map (fn [key _] key))
+                                 (partition-all 1000)
+                                 (map #(make-delete-file-action s3 % delete whatif verbose)))
+                            (map #(make-update-file-action s3 % force whatif verbose) both))
+                          (vec))]
+            (<! (perform-actions 8 actions))))))))
