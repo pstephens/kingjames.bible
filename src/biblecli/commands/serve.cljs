@@ -15,19 +15,33 @@
 (ns biblecli.commands.serve
   (:require
     [biblecli.main.utility :refer [get-root-path]]
+    [cljs.nodejs :refer [require]]
     [common.asset.bible :as bible-res]
     [common.asset.directory :as dir]
     [common.asset.server :as server]
     [test.asset.testpages :as testpages]))
 
-(def node-path (js/require "path"))
+(def node-path (require "path"))
 
-(defn serve []
+(defn serve
+  {:summary "Serve static resources using HTTP presumably for integration testing."
+   :doc "usage: biblecli serve [--port <port>] [--biblepath <path>] [--respath <path>]
+   --port <port>        Web server port. Defaults to 7490.
+   --biblepath <path>   Path to pre-computed bible resource files. Defaults to <root>/out/bible. See the 'prepare' command.
+   --respath <path>     Path to compiled javascript resources. Defaults to <root>/out/dbg."
+   :cmdline-opts {:string ["port" "biblepath" "respath"]
+                  :default {:port "7490"
+                            :biblepath nil
+                            :respath nil}}}
+  [{port :port biblepath :biblepath respath :respath}]
   (let [root-path (get-root-path)
         rel #(.join node-path root-path %)
-        bible-dir (rel "out/bible")
-        bible-meta-data (bible-res/read-bible-meta-data bible-dir)]
-    (server/listen [
-      (bible-res/resources bible-dir bible-meta-data)
-      (dir/resources (rel "out/dbg") "/")
-      (testpages/resources bible-meta-data)])))
+        bible-dir (or biblepath (rel "out/bible"))
+        res-dir (or respath (rel "out/dbg"))
+        bible-meta-data (bible-res/read-bible-meta-data bible-dir)
+        port (js/parseInt port)]
+    (server/listen
+      [(bible-res/resources bible-dir bible-meta-data)
+       (dir/resources res-dir "/")
+       (testpages/resources bible-meta-data)]
+      port)))

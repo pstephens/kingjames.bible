@@ -15,12 +15,14 @@
 (ns biblecli.commands.staticpages
   (:require-macros [hiccups.core :as hiccups :refer [html]])
   (:require
+    [biblecli.main.utility :as u]
+    [cljs.nodejs :refer [require]]
     [clojure.string :as s]
     [common.normalizer.core :refer [parse]]
     [hiccups.runtime :as hiccupsrt]))
 
-(def node-fs (js/require "fs"))
-(def node-path (js/require "path"))
+(def node-fs (require "fs"))
+(def node-path (require "path"))
 
 (defn style []
 "body {
@@ -456,8 +458,6 @@ ga('send', 'pageview');")
 
 (defn chapter
   [{book-id :book-id
-    chap-num :num
-    chap-cnt :chap-cnt
     verses :verses
     :as ch}
     prev-ch
@@ -518,9 +518,23 @@ ga('send', 'pageview');")
         buff (js/Buffer content "utf8")]
     (.writeFileSync node-fs filepath buff)))
 
-(defn prepare! [parser src output-dir]
-  (let [m (parse parser src)
-        all-chapters (chapters m)]
+(defn static
+  {:summary "Generate static HTML, CSS, JavaScript, and other resources for the books of the bible."
+   :doc "usage: biblecli static [--parser <parser>] [--input <input-path>] <output-path>
+   --parser <parser>      Parser. Defaults to '{{default-parser}}'.
+   --input <input-path>   Input path. Defaults to '{{default-parser-input}}'.
+   <output-path>          Output directory to place the resource files."
+   :cmdline-opts {:string ["parser" "input"]
+                  :default {:parser nil
+                            :input nil}}}
+  [{parser :parser input :input output-dir :_}]
+  (if (not= (count output-dir) 1)
+    (throw "Must have exactly one <output-path> parameter."))
+  (let [parser (or parser (u/default-parser))
+        input  (or input (u/default-parser-input))
+        m (parse parser input)
+        all-chapters (chapters m)
+        output-dir (first output-dir)]
     (write! output-dir "styles.css" (style))
     (write! output-dir "hiliter.js" (js))
     (write! output-dir "robots.txt" (robots))

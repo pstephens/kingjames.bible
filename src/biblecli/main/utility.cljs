@@ -12,10 +12,21 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns biblecli.main.utility)
+(ns biblecli.main.utility
+  (:require [cljs.nodejs :refer [require]]))
+
+(def path (require "path"))
 
 (def root-path (atom ""))
 
 (defn get-root-path [] @root-path)
 
 (defn set-root-path! [path] (reset! root-path path))
+
+(defn default-parser [] "staggs")
+
+(defn default-parser-input []
+  (.join path (get-root-path) "./kjv-src/www.staggs.pair.com-kjbp/kjv.txt"))
+
+(defn default-parser-input-rel []
+  (.relative path "" (default-parser-input)))
