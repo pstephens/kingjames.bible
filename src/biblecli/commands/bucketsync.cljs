@@ -142,11 +142,18 @@
 (defn perform-actions [n coll]
   (go
     (let [ch (to-chan coll)
-          workers (->> (range n) (map (fn [_] (perform-action ch))) (vec))]
-      (let [results (<! (async/map (fn [err _] err) workers))
-            err (reduce #(or %1 %2) nil results)
-            res (if err nil true)]
-        [err res]))))
+          results
+          (->>
+            (range n)
+            (map (fn [_] (perform-action ch)))
+            (vec)
+            (async/merge)
+            (async/into [])
+            (<!)
+            (map (fn [[err _]] err)))
+          err (reduce #(or %1 %2) nil results)
+          res (if err nil true)]
+      [err res])))
 
 (defn object-props [content-type max-age]
   {:content-type content-type
@@ -188,6 +195,16 @@
       (cb (str "Could not resolve content-type for '" key "'.") nil))
     ch))
 
+(defn delete-s3-objects [s3 keys]
+  (let [params (clj->js {:Delete
+                         {:Objects (->> keys
+                                        (map (fn [key] {:Key key}))
+                                        (vec))}})
+        ch (chan)
+        cb (fn [err data] (put! ch [err data]))]
+    (.deleteObjects s3 params cb)
+    ch))
+
 (defn read-local-file [path]
   (let [ch (chan)
         cb (fn [err data] (put! ch [err data]))]
@@ -198,13 +215,20 @@
   (fn delete []
     (go
       (let [msg (if verbose
-                  (str "deleting S3 object(s) '" (s/join keys "', '") "'")
+                  (str "deleting S3 object(s) '" (s/join "', '" keys) "'")
                   (str "deleting " (count keys) " S3 object(s)"))]
         (log-action (not should-delete) whatif verbose "Skipped " msg ". Use the --delete option.")
         (log-action should-delete whatif verbose "Started " msg ".")
-
-        (log-action (and should-delete verbose) whatif verbose "Finished " msg ".")
-        [nil true]))))
+        (let [[err _] (if (or whatif (not should-delete))
+                        [nil true]
+                        (<! (delete-s3-objects s3 keys)))]
+          (if err
+            (do
+              (log-action true whatif verbose "Failed while " msg ". " err)
+              [err nil])
+            (do
+              (log-action (and should-delete verbose) whatif verbose "Finished " msg ".")
+              [nil true])))))))
 
 (defn make-copy-file-action [s3 [relpath filepath] whatif verbose]
   (fn copy []
@@ -222,10 +246,10 @@
                             (<! (put-s3-object s3 relpath buff md5buff)))]
               (if err
                 (do
-                  (log-action true whatif  verbose "Failed while " msg ". " err)
+                  (log-action true whatif verbose "Failed while " msg ". " err)
                   [err nil])
                 (do
-                  (log-action verbose whatif  verbose "Finished " msg ".")
+                  (log-action verbose whatif verbose "Finished " msg ".")
                   [nil true])))))))))
 
 (defn make-update-file-action [s3 [relpath filepath etag] force whatif verbose]
@@ -233,9 +257,29 @@
     (go
       (let [msg (str "updating '" relpath "' to S3")]
         (log-action verbose whatif verbose "Comparing local '" relpath "' with remote.")
-        (log-action true whatif verbose "Started " msg ".")
-        (log-action verbose whatif verbose "Finished " msg ".")
-        [nil true]))))
+        (let [[err buff] (<! (read-local-file filepath))]
+          (if err
+            (do
+              (log-action true whatif verbose "Failed to read local file '" filepath "'. " err)
+              [err nil])
+            (let [md5buff (calc-md5-digest buff)
+                  sourceMd5str (str "\"" (.toUpperCase (.toString md5buff "hex")) "\"")
+                  destMd5str (.toUpperCase etag)]
+              (if (or force (not= sourceMd5str destMd5str))
+                (do
+                  (log-action true whatif verbose "Started " msg ".")
+                  (let [[err _] (if whatif
+                                 [nil true]
+                                 (<! (put-s3-object s3 relpath buff md5buff)))]
+                    (if err
+                      (do
+                        (log-action true whatif verbose "failed while " msg ". " err)
+                        [err nil])
+                      (do
+                        (log-action verbose whatif verbose "Finished " msg ".")
+                        [nil true]))))))))))))
+
+(def remote-key-white-list #"^(BingSiteAuth\.xml)|(google.*\.html)$")
 
 (defn bucketsync
   {:summary "Synchronize a remote Amazon S3 bucket with a local asset directory."
@@ -256,7 +300,7 @@
                   :default {:bucket "kingjames-beta"
                             :region "us-east-1"
                             :profile "default"}}}
-  [{dir :_ force :force whatif :whatif delete :delete bucket :bucket region :region profile :profile verbose :verbose :as f}]
+  [{dir :_ force :force whatif :whatif delete :delete bucket :bucket region :region profile :profile verbose :verbose}]
   (go
     (if (not= (count dir) 1)
       ["<dir> parameter required." nil]
@@ -274,7 +318,8 @@
                           (concat
                             (map #(make-copy-file-action s3 % whatif verbose) onlylocal)
                             (->> onlyremote
-                                 (map (fn [key _] key))
+                                 (map (fn [[key _]] key))
+                                 (filter #(not (re-find remote-key-white-list %)))
                                  (partition-all 1000)
                                  (map #(make-delete-file-action s3 % delete whatif verbose)))
                             (map #(make-update-file-action s3 % force whatif verbose) both))
