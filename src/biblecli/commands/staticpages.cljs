@@ -13,13 +13,13 @@
 ;;;;   limitations under the License.
 
 (ns biblecli.commands.staticpages
-  (:require-macros [hiccups.core :as hiccups :refer [html]])
+  (:require-macros [hiccups.core :refer [html]])
   (:require
     [biblecli.main.utility :as u]
     [cljs.nodejs :refer [require]]
     [clojure.string :as s]
     [common.normalizer.core :refer [parse]]
-    [hiccups.runtime :as hiccupsrt]))
+    [hiccups.runtime]))
 
 (def node-fs (require "fs"))
 (def node-path (require "path"))
@@ -231,7 +231,12 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 ga('create', 'UA-75078401-1', 'auto');
 ga('send', 'pageview');")
 
-(defn robots [] "Sitemap: https://kingjames.bible/sitemap.xml")
+(defn join-url [base rel]
+  (if (.endsWith base "/")
+    (str base rel)
+    (str base "/" rel)))
+
+(defn robots [baseurl] (str "Sitemap: " (join-url baseurl "sitemap.xml")))
 
 (defn book-name [book-id]
   (let [m {
@@ -332,7 +337,7 @@ ga('send', 'pageview');")
       (map (fn [ch]
         (list [:a {:href (rel-url (:id b) (:num ch) (count (:chapters b)))} (:num ch)] " "))))])
 
-(defn toc [m]
+(defn toc [m baseurl canonical]
   (str "<!DOCTYPE html>"
     (html
       [:html {:lang "en"}
@@ -340,13 +345,14 @@ ga('send', 'pageview');")
           [:title "The King James Bible"]
           [:meta {:name "description" :content "The King James Bible, the Holy Bible in English - Table of Contents"}]
           [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-          [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
+          [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]
+          [:link {:rel "canonical" :href canonical}]]
         [:body
           [:div.content
             [:h1 "The King James Bible"]
 
             [:div#votd.votd]
-            [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','https://kingjames.bible/votd/votd.js','votd','votd');"]
+            [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','votd/votd.js','votd','votd');"]
 
             [:h2 "The Old Testament"]
             (->> m
@@ -358,7 +364,7 @@ ga('send', 'pageview');")
               (drop 39)
               (map toc-book))
 
-            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About https://kingjames.bible"]]]
+            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl ]]]
           [:script {:type "text/javascript" :src "hiliter.js"}]]])))
 
 (defn chapters [m]
@@ -460,8 +466,10 @@ ga('send', 'pageview');")
   [{book-id :book-id
     verses :verses
     :as ch}
-    prev-ch
-    next-ch]
+   prev-ch
+   next-ch
+   baseurl
+   canonical]
   (str
     "<!DOCTYPE html>"
     (html
@@ -470,7 +478,8 @@ ga('send', 'pageview');")
           [:title (str (chapter-name ch) " - The King James Bible")]
           [:meta {:name "description" :content (str "The King James Bible, the Holy Bible in English - " (chapter-name ch))}]
           [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-          [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]]
+          [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]
+          [:link {:rel "canonical" :href (join-url canonical (rel-url ch))}]]
         [:body
           [:div.content
             [:div.menu
@@ -483,7 +492,7 @@ ga('send', 'pageview');")
             [:h1.chap
               (chapter-name ch)]
             (map-indexed #(verse %1 ch %2) verses)
-            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About https://kingjames.bible"]]
+            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl]]
             [:script {:type "text/javascript" :src "hiliter.js"}]]]])))
 
 (defn next-chapter [all-chapters i]
@@ -492,10 +501,10 @@ ga('send', 'pageview');")
 (defn prev-chapter [all-chapters i]
   (get all-chapters (dec i)))
 
-(defn sitemap-line [rel-url freq priority]
+(defn sitemap-line [rel-url freq priority baseurl]
   (str
-    "<url><loc>https://kingjames.bible/"
-    rel-url
+    "<url><loc>"
+    (join-url baseurl rel-url)
     "</loc><changefreq>"
     freq
     "</changefreq><priority>"
@@ -503,14 +512,14 @@ ga('send', 'pageview');")
     "</priority></url>
 "))
 
-(defn sitemap [chapters]
+(defn sitemap [chapters baseurl]
   (apply str
     (flatten [
 "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">
 "
-(sitemap-line "" "daily" "0.8")
-(map #(sitemap-line (rel-url %) "monthly" "1.0") chapters)
+(sitemap-line "" "daily" "0.8" baseurl)
+(map #(sitemap-line (rel-url %) "monthly" "1.0" baseurl) chapters)
 "</urlset>"])))
 
 (defn write! [dir filename content]
@@ -520,14 +529,18 @@ ga('send', 'pageview');")
 
 (defn static
   {:summary "Generate static HTML, CSS, JavaScript, and other resources for the books of the bible."
-   :doc "usage: biblecli static [--parser <parser>] [--input <input-path>] <output-path>
+   :doc "usage: biblecli static [--parser <parser>] [--input <input-path>] [-canonical <url>] [-baseurl <url>] <output-path>
    --parser <parser>      Parser. Defaults to '{{default-parser}}'.
    --input <input-path>   Input path. Defaults to '{{default-parser-input}}'.
+   --canonical <url>      The canonical url. Defaults to https://kingjames.bible.
+   --baseurl <url>        The base url. Defaults to https://beta.kingjames.bible.
    <output-path>          Output directory to place the resource files."
-   :cmdline-opts {:string ["parser" "input"]
+   :cmdline-opts {:string ["parser" "input" "baseurl" "canonical"]
                   :default {:parser nil
-                            :input nil}}}
-  [{parser :parser input :input output-dir :_}]
+                            :input nil
+                            :baseurl "https://beta.kingjames.bible"
+                            :canonical "https://kingjames.bible"}}}
+  [{parser :parser input :input output-dir :_ baseurl :baseurl canonical :canonical}]
   (if (not= (count output-dir) 1)
     (throw "Must have exactly one <output-path> parameter."))
   (let [parser (or parser (u/default-parser))
@@ -537,15 +550,18 @@ ga('send', 'pageview');")
         output-dir (first output-dir)]
     (write! output-dir "styles.css" (style))
     (write! output-dir "hiliter.js" (js))
-    (write! output-dir "robots.txt" (robots))
-    (write! output-dir "sitemap.xml" (sitemap all-chapters))
-    (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m))
+    (write! output-dir "robots.txt" (robots baseurl))
+    (write! output-dir "sitemap.xml" (sitemap all-chapters baseurl))
+    (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical))
     (dorun
       (map-indexed
         #(write!
           output-dir
           (rel-url %2)
-          (chapter %2
+          (chapter
+            %2
             (prev-chapter all-chapters %1)
-            (next-chapter all-chapters %1)))
+            (next-chapter all-chapters %1)
+            baseurl
+            canonical))
         all-chapters))))
