@@ -180,7 +180,9 @@ a:hover, a:active {
 
 (defn js []
 "// NOTE: Experimental
-document.lastElem = null;
+(function (document, window) {
+
+var lastElem = null;
 
 function RemoveHilite(el) {
     if(el) {
@@ -199,28 +201,50 @@ function AddHilite(el) {
     }
 }
 
+function FindElem(id)
+{
+    return id === null ? null : document.getElementById(id);
+}
+
 function SetHilight()
 {
     var el;
-    if(document.lastElem) {
-        el = document.getElementById(document.lastElem);
-        RemoveHilite(el);
-    }
+    el = FindElem(lastElem);
+    RemoveHilite(el);
 
-    var id = window.location.hash.substr(1);
-    el = document.getElementById(id);
+    var id = '_' + window.location.hash.substr(1);
+    el = FindElem(id);
     if(el) {
-        document.lastElem = id;
+        lastElem = id;
         AddHilite(el);
+    } else {
+        lastElem = null;
     }
 }
 
-document.addEventListener('DOMContentLoaded', function(e) {
-    SetHilight();
-    window.addEventListener('hashchange', function(e) {
-        SetHilight();
-    });
+function CenterElem(el)
+{
+    if(el) {
+        var elRect = el.getBoundingClientRect(),
+            elHeight = elRect.bottom - elRect.top,
+            docEl = document.documentElement,
+            newY = window.scrollY +
+                   elRect.top -
+                   (docEl.clientHeight - elHeight) / 2;
+        window.scrollTo(window.scrollX, newY);
+    }
+}
+
+window.addEventListener('hashchange', function(e) {
+  SetHilight();
 });
+
+window.addEventListener('load', function() {
+  SetHilight();
+  window.setTimeout(function() { CenterElem(FindElem(lastElem)); }, 1);
+});
+
+})(document, window);
 
 // Google Analytics
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -330,7 +354,7 @@ ga('send', 'pageview');")
     (rel-url book-id chap-num chap-cnt)))
 
 (defn toc-book [b]
-  [:p.tocp {:id (book-elem-id (:id b))}
+  [:p.tocp {:id (str "_" (book-elem-id (:id b)))}
     [:span.chapter (book-name (:id b))]
     " "
     (->> (:chapters b)
@@ -447,7 +471,7 @@ ga('send', 'pageview');")
 
 (defn verse-id [i ch]
   (if-let [num (verse-num i ch)]
-    {:id num}
+    {:id (str "_" num)}
     {}))
 
 (defn verse [i ch v]
