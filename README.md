@@ -17,6 +17,6 @@ Here is the current thinking and relative order of planned features:
 Please add feature suggestions to the issue tracker and I'll see what I can do.
 
 ## Tools
-![BrowserStack](doc/browserstacklogo.png)
+### ![BrowserStack](doc/browserstacklogo.png)
 Cross browser testing is provided by [BrowserStack](https://www.browserstack.com/).
   
