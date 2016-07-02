@@ -77,16 +77,31 @@ a:hover, a:active {
   text-indent: 0;
   text-align: center;
 }
+.tocp {
+  border: none;
+  border-collapse: collapse;
+
+}
 .chapter {
     font-size: 120%;
     font-weight: bold;
+    vertical-align: top;
+    padding: 4px 0px 4px 2px;
 }
-.tocp {
-    text-indent: -2em;
-    padding: 0.18em 0.25em 0.18em 2.25em;
-    margin-bottom: 0.25em;
-    margin-top: 0;
-    text-align: left;
+.chapters {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+.chapters a {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 2px;
+    margin: 2px;
+    background-color: rgba(0,0,0,0.03);
 }
 .hilite {
   background-color: #FFFF99;
@@ -332,6 +347,10 @@ ga('send', 'pageview');")
     :Revelation     "Revelation"}]
     (get m book-id)))
 
+(defn book-name-nbsp [book-id]
+  (let [name (book-name book-id)]
+    (s/replace name #"^(I|II|III)\s+" "$1&nbsp;")))
+
 (defn book-elem-id [book-id]
   (s/replace (book-name book-id) " " "-"))
 
@@ -354,12 +373,12 @@ ga('send', 'pageview');")
     (rel-url book-id chap-num chap-cnt)))
 
 (defn toc-book [b]
-  [:p.tocp {:id (str "_" (book-elem-id (:id b)))}
-    [:span.chapter (book-name (:id b))]
-    " "
+  [:tr {:id (str "_" (book-elem-id (:id b)))}
+    [:td.chapter (book-name-nbsp (:id b))]
+    [:td.chapters
     (->> (:chapters b)
       (map (fn [ch]
-        (list [:a {:href (rel-url (:id b) (:num ch) (count (:chapters b)))} (:num ch)] " "))))])
+        (list [:a {:href (rel-url (:id b) (:num ch) (count (:chapters b)))} (:num ch)]))))]])
 
 (defn toc [m baseurl canonical]
   (str "<!DOCTYPE html>"
@@ -378,15 +397,16 @@ ga('send', 'pageview');")
             [:div#votd.votd]
             [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','votd/votd.js','votd','votd');"]
 
-            [:h2 "The Old Testament"]
-            (->> m
-              (take 39)
-              (map toc-book))
+            [:table.tocp
+              [:tr [:td {:colspan 2} [:h2 "The Old Testament"]]]
+              (->> m
+                (take 39)
+                (map toc-book))
 
-            [:h2 "The New Testament"]
-            (->> m
-              (drop 39)
-              (map toc-book))
+              [:tr [:td {:colspan 2} [:h2 "The New Testament"]]]
+              (->> m
+                (drop 39)
+                (map toc-book))]
 
             [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl ]]]
           [:script {:type "text/javascript" :src "hiliter.js"}]]])))
