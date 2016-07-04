@@ -77,33 +77,31 @@ a:hover, a:active {
   text-indent: 0;
   text-align: center;
 }
-.tocp {
-  border: none;
-  border-collapse: collapse;
 
+.book h3 {
+  margin: 0;
+  min-height: 32px;
 }
-.chapter {
-    font-size: 120%;
-    font-weight: bold;
-    vertical-align: top;
-    padding: 4px 0px 4px 2px;
+.book .chapters {
+  display: none;
+  margin-bottom: 8px;
 }
-.chapters {
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 10px;
+.book .chapters a {
+  display: inline-block;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 2px;
+  margin: 2px;
+  background-color: rgba(0,0,0,0.03);
 }
-.chapters a {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    min-width: 32px;
-    min-height: 32px;
-    padding: 2px;
-    margin: 2px;
-    background-color: rgba(0,0,0,0.03);
+.book.active .chapters {
+  display: block;
 }
-.hilite {
+
+.verses .active {
   background-color: #FFFF99;
 }
 .about {
@@ -199,19 +197,13 @@ a:hover, a:active {
 
 var lastElem = null;
 
-function RemoveHilite(el) {
+function SetActiveElem(el, isActive) {
     if(el) {
         var t = el.className;
-        t = t.replace('hilite', '').trim();
-        el.className = t;
-    }
-}
-
-function AddHilite(el) {
-    if(el) {
-        var t = el.className;
-        t = t.replace('hilite', '').trim();
-        t += ' hilite';
+        t = t.replace('active', '').trim();
+        if(isActive) {
+          t += ' active';
+        }
         el.className = t;
     }
 }
@@ -221,17 +213,17 @@ function FindElem(id)
     return id === null ? null : document.getElementById(id);
 }
 
-function SetHilight()
+function SetActive()
 {
     var el;
     el = FindElem(lastElem);
-    RemoveHilite(el);
+    SetActiveElem(el, false);
 
     var id = '_' + window.location.hash.substr(1);
     el = FindElem(id);
     if(el) {
         lastElem = id;
-        AddHilite(el);
+        SetActiveElem(el, true);
     } else {
         lastElem = null;
     }
@@ -251,11 +243,11 @@ function CenterElem(el)
 }
 
 window.addEventListener('hashchange', function(e) {
-  SetHilight();
+  SetActive();
 });
 
 window.addEventListener('load', function() {
-  SetHilight();
+  SetActive();
   window.setTimeout(function() { CenterElem(FindElem(lastElem)); }, 1);
 });
 
@@ -373,12 +365,17 @@ ga('send', 'pageview');")
     (rel-url book-id chap-num chap-cnt)))
 
 (defn toc-book [b]
-  [:tr {:id (str "_" (book-elem-id (:id b)))}
-    [:td.chapter (book-name-nbsp (:id b))]
-    [:td.chapters
-    (->> (:chapters b)
-      (map (fn [ch]
-        (list [:a {:href (rel-url (:id b) (:num ch) (count (:chapters b)))} (:num ch)]))))]])
+  (let [chapters (:chapters b)
+        chapcount (count chapters)
+        id (:id b)
+        bookid (book-elem-id id)]
+     [:div.book {:id (str "_" bookid)}
+     [:h3.chapter [:a {:href (if (> chapcount 1) (str "#" bookid) bookid)} (book-name-nbsp id)]]
+     [:div.chapters
+      (->> chapters
+           (map (fn [ch]
+                  (list [:a {:href (rel-url (:id b) (:num ch) chapcount)} (:num ch)]))))]]))
+
 
 (defn toc [m baseurl canonical]
   (str "<!DOCTYPE html>"
@@ -391,22 +388,21 @@ ga('send', 'pageview');")
           [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]
           [:link {:rel "canonical" :href canonical}]]
         [:body
-          [:div.content
+          [:div.content.toc
             [:h1 "The King James Bible"]
 
             [:div#votd.votd]
             [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','votd/votd.js','votd','votd');"]
 
-            [:table.tocp
-              [:tr [:td {:colspan 2} [:h2 "The Old Testament"]]]
-              (->> m
-                (take 39)
-                (map toc-book))
+            [:h2 "The Old Testament"]
+            (->> m
+              (take 39)
+              (map toc-book))
 
-              [:tr [:td {:colspan 2} [:h2 "The New Testament"]]]
-              (->> m
-                (drop 39)
-                (map toc-book))]
+            [:h2 "The New Testament"]
+            (->> m
+              (drop 39)
+              (map toc-book))
 
             [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl ]]]
           [:script {:type "text/javascript" :src "hiliter.js"}]]])))
@@ -525,7 +521,7 @@ ga('send', 'pageview');")
           [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]
           [:link {:rel "canonical" :href (join-url canonical (rel-url ch))}]]
         [:body
-          [:div.content
+          [:div.content.verses
             [:div.menu
               [:div.menu2
                 [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
