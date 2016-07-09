@@ -28,6 +28,7 @@
 "body {
   margin: 0;
   padding: 0;
+  font-family: \"Times New Roman\", TimesNewRoman, Times, Baskerville, Georgia, serif;
 }
 a:link, a:visited {
   text-decoration: none;
@@ -91,9 +92,10 @@ a:hover, a:active {
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 2px;
+  text-align: center;
+  min-width: 4ex;
+  min-height: 4ex;
+  padding: 0;
   margin: 2px;
   background-color: rgba(0,0,0,0.03);
 }
