@@ -79,30 +79,29 @@ a:hover, a:active {
   text-align: center;
 }
 
-.book h3 {
-  margin: 0;
-  min-height: 32px;
-}
-.book .chapters {
+.book, .main {
   display: none;
-  margin-bottom: 8px;
 }
-.book .chapters a {
+.books a, .chapters a {
   display: inline-block;
   display: inline-flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  min-width: 4ex;
-  min-height: 4ex;
-  padding: 0;
+  min-height: 3.7ex;
+  padding: 2px;
   margin: 2px;
-  background-color: rgba(0,0,0,0.03);
+  background-color: rgba(0,0,0,0.05);
 }
-.book.active .chapters {
+.books a {
+  min-width: 17.5ex;
+}
+.chapters a {
+  min-width: 3.7ex;
+}
+.toc .active {
   display: block;
 }
-
 .verses .active {
   background-color: #FFFF99;
 }
@@ -194,8 +193,7 @@ a:hover, a:active {
 ")
 
 (defn js []
-"// NOTE: Experimental
-(function (document, window) {
+"(function (document, window) {
 
 var lastElem = null;
 
@@ -220,9 +218,16 @@ function SetActive()
     var el;
     el = FindElem(lastElem);
     SetActiveElem(el, false);
+    el = FindElem('_main');
+    SetActiveElem(el, false);
 
-    var id = '_' + window.location.hash.substr(1);
+    var raw = window.location.hash.substr(1);
+    var id = '_' + raw;
     el = FindElem(id);
+    if(!el) {
+      id = '_main';
+      el = FindElem(id);
+    }
     if(el) {
         lastElem = id;
         SetActiveElem(el, true);
@@ -371,13 +376,20 @@ ga('send', 'pageview');")
         chapcount (count chapters)
         id (:id b)
         bookid (book-elem-id id)]
-     [:div.book {:id (str "_" bookid)}
-     [:h3.chapter [:a {:href (if (> chapcount 1) (str "#" bookid) bookid)} (book-name-nbsp id)]]
-     [:div.chapters
-      (->> chapters
-           (map (fn [ch]
-                  (list [:a {:href (rel-url (:id b) (:num ch) chapcount)} (:num ch)]))))]]))
+     [:a {:href (if (> chapcount 1) (str "#" bookid) bookid)} (book-name-nbsp id)]))
 
+(defn toc-book-details [b]
+  (let [chapters (:chapters b)
+        chapcount (count chapters)
+        id (:id b)
+        bookid (book-elem-id id)]
+    [:div.book {:id (str "_" bookid)}
+      [:h2.chapter (book-name-nbsp id)]
+      [:div.back [:a {:href "."} "Back to Book Lists"]]
+      [:div.chapters
+        (->> chapters
+             (map (fn [ch]
+                  (list [:a {:href (rel-url (:id b) (:num ch) chapcount)} (:num ch)]))))]]))
 
 (defn toc [m baseurl canonical]
   (str "<!DOCTYPE html>"
@@ -393,18 +405,25 @@ ga('send', 'pageview');")
           [:div.content.toc
             [:h1 "The King James Bible"]
 
-            [:div#votd.votd]
-            [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','votd/votd.js','votd','votd');"]
+            [:div#_main.main.active
 
-            [:h2 "The Old Testament"]
-            (->> m
-              (take 39)
-              (map toc-book))
+              [:div#votd.votd]
+              [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','votd/votd.js','votd','votd');"]
 
-            [:h2 "The New Testament"]
-            (->> m
-              (drop 39)
-              (map toc-book))
+              [:h2 "The Old Testament"]
+              [:div.books
+                (->> m
+                  (take 39)
+                  (map toc-book))]
+
+              [:h2 "The New Testament"]
+              [:div.books
+                (->> m
+                  (drop 39)
+                  (map toc-book))]]
+
+           (->> m
+                (map toc-book-details))
 
             [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl ]]]
           [:script {:type "text/javascript" :src "hiliter.js"}]]])))
