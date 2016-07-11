@@ -193,46 +193,57 @@ a:hover, a:active {
 ")
 
 (defn js []
-"(function (document, window) {
+"
+/*!
+ * domready (c) Dustin Diaz 2012 - License MIT
+ * https://github.com/ded/domready/blob/v0.3.0/ready.min.js
+ */
+!function(e,t){typeof module!=\"undefined\"?module.exports=t():typeof define==\"function\"&&typeof define.amd==\"object\"?define(t):this[e]=t()}(\"domready\",function(e){function p(e){h=1;while(e=t.shift())e()}var t=[],n,r=!1,i=document,s=i.documentElement,o=s.doScroll,u=\"DOMContentLoaded\",a=\"addEventListener\",f=\"onreadystatechange\",l=\"readyState\",c=o?/^loaded|^c/:/^loaded|c/,h=c.test(i[l]);return i[a]&&i[a](u,n=function(){i.removeEventListener(u,n,r),p()},r),o&&i.attachEvent(f,n=function(){/^c/.test(i[l])&&(i.detachEvent(f,n),p())}),e=o?function(n){self!=top?h?n():t.push(n):function(){try{s.doScroll(\"left\")}catch(t){return setTimeout(function(){e(n)},50)}n()}()}:function(e){h?e():t.push(e)}});
 
-var lastElem = null;
+(function (document, window) {
 
-function SetActiveElem(el, isActive) {
-    if(el) {
-        var t = el.className;
-        t = t.replace('active', '').trim();
-        if(isActive) {
-          t += ' active';
-        }
-        el.className = t;
-    }
-}
+var activeId = '_main';
 
 function FindElem(id)
 {
     return id === null ? null : document.getElementById(id);
 }
 
+function SetActiveElem(id) {
+  function Activate(id, active) {
+    var el = document.getElementById(id);
+    if(el) {
+      var t = el.className;
+      t = t.replace('active', '').trim();
+      if(active) {
+        t = (t + ' active').trim();
+      }
+      if(el.className !== t) {
+        el.className = t;
+      }
+    }
+    return !!el;
+  }
+
+  var ret;
+  if(id !== activeId) {
+    Activate(activeId, false);
+    ret = Activate(id, true);
+    activeId = id;
+  }
+  else {
+    ret = true;
+  }
+  return ret;
+}
+
+
 function SetActive()
 {
-    var el;
-    el = FindElem(lastElem);
-    SetActiveElem(el, false);
-    el = FindElem('_main');
-    SetActiveElem(el, false);
-
     var raw = window.location.hash.substr(1);
     var id = '_' + raw;
-    el = FindElem(id);
-    if(!el) {
-      id = '_main';
-      el = FindElem(id);
-    }
-    if(el) {
-        lastElem = id;
-        SetActiveElem(el, true);
-    } else {
-        lastElem = null;
+    if(!SetActiveElem(id)) {
+      SetActiveElem('_main');
     }
 }
 
@@ -253,9 +264,9 @@ window.addEventListener('hashchange', function(e) {
   SetActive();
 });
 
-window.addEventListener('load', function() {
+domready(function() {
   SetActive();
-  window.setTimeout(function() { CenterElem(FindElem(lastElem)); }, 1);
+  window.setTimeout(function() { CenterElem(FindElem(activeId)); }, 0);
 });
 
 })(document, window);
@@ -265,7 +276,6 @@ window.addEventListener('load', function() {
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
 m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
 ga('create', 'UA-75078401-1', 'auto');
 ga('send', 'pageview');")
 
@@ -385,7 +395,7 @@ ga('send', 'pageview');")
         bookid (book-elem-id id)]
     [:div.book {:id (str "_" bookid)}
       [:h2.chapter (book-name-nbsp id)]
-      [:div.back [:a {:href "."} "Back to Book Lists"]]
+      [:div.back [:a {:href "#"} "Back to Book Lists"]]
       [:div.chapters
         (->> chapters
              (map (fn [ch]
