@@ -30,6 +30,9 @@
   padding: 0;
   font-family: \"Times New Roman\", TimesNewRoman, Times, Baskerville, Georgia, serif;
 }
+h1, h2 {
+  margin: 0.45em 0 0.3em 0;
+}
 a:link, a:visited {
   text-decoration: none;
   color: #33f;
@@ -40,8 +43,7 @@ a:hover, a:active {
 }
 .content {
   font-size: 125%;
-  padding: 25px;
-  background-color: #FFFFFF;
+  background-color: white;
 }
 .ref {
   display: none;
@@ -81,6 +83,11 @@ a:hover, a:active {
 
 .book, .main {
   display: none;
+}
+.book a.back {
+  font-size: 0.67em;
+  font-weight: normal;
+  margin-left: 1em;
 }
 .books a, .chapters a {
   display: inline-block;
@@ -141,6 +148,7 @@ a:hover, a:active {
     width: 600px;
     margin: 25px auto 15px auto;
     border: 1px solid #BBB;
+    padding: 25px;
     -webkit-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
     -moz-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
     box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
@@ -168,8 +176,11 @@ a:hover, a:active {
 
 @media (max-width: 680px) {
   .content {
-    min-width: 280px;
     margin: 25px auto 15px auto;
+    padding: 0 12px 12px 12px;
+  }
+  .content.verses {
+    padding-top: 12px;
   }
   .menu {
     position: fixed;
@@ -201,6 +212,8 @@ a:hover, a:active {
 !function(e,t){typeof module!=\"undefined\"?module.exports=t():typeof define==\"function\"&&typeof define.amd==\"object\"?define(t):this[e]=t()}(\"domready\",function(e){function p(e){h=1;while(e=t.shift())e()}var t=[],n,r=!1,i=document,s=i.documentElement,o=s.doScroll,u=\"DOMContentLoaded\",a=\"addEventListener\",f=\"onreadystatechange\",l=\"readyState\",c=o?/^loaded|^c/:/^loaded|c/,h=c.test(i[l]);return i[a]&&i[a](u,n=function(){i.removeEventListener(u,n,r),p()},r),o&&i.attachEvent(f,n=function(){/^c/.test(i[l])&&(i.detachEvent(f,n),p())}),e=o?function(n){self!=top?h?n():t.push(n):function(){try{s.doScroll(\"left\")}catch(t){return setTimeout(function(){e(n)},50)}n()}()}:function(e){h?e():t.push(e)}});
 
 (function (document, window) {
+
+document.kj = document.kj || {};
 
 var activeId = '_main';
 
@@ -237,7 +250,6 @@ function SetActiveElem(id) {
   return ret;
 }
 
-
 function SetActive()
 {
     var raw = window.location.hash.substr(1);
@@ -245,6 +257,13 @@ function SetActive()
     if(!SetActiveElem(id)) {
       SetActiveElem('_main');
     }
+}
+
+function ScrollToY(y)
+{
+  if(window.scrollY !== y) {
+    window.scrollTo(window.scrollX, y);
+  }
 }
 
 function CenterElem(el)
@@ -256,17 +275,34 @@ function CenterElem(el)
             newY = window.scrollY +
                    elRect.top -
                    (docEl.clientHeight - elHeight) / 2;
-        window.scrollTo(window.scrollX, newY);
+        ScrollToY(newY);
     }
 }
 
+function DoScroll()
+{
+  window.setTimeout(
+    function() {
+      if(document.kj.centeractive) {
+        CenterElem(FindElem(activeId));
+      }
+      if(document.kj.scrolltop) {
+        ScrollToY(0);
+      }
+    }, 0);
+}
+
+SetActive();
+DoScroll();
+
 window.addEventListener('hashchange', function(e) {
   SetActive();
+  DoScroll();
 });
 
 domready(function() {
   SetActive();
-  window.setTimeout(function() { CenterElem(FindElem(activeId)); }, 0);
+  DoScroll();
 });
 
 })(document, window);
@@ -394,8 +430,8 @@ ga('send', 'pageview');")
         id (:id b)
         bookid (book-elem-id id)]
     [:div.book {:id (str "_" bookid)}
-      [:h2.chapter (book-name-nbsp id)]
-      [:div.back [:a {:href "#"} "Back to Book Lists"]]
+      [:h2.chapter (book-name-nbsp id) " "
+       [:a.back {:href "#"} "Table of Contents"]]
       [:div.chapters
         (->> chapters
              (map (fn [ch]
@@ -436,7 +472,9 @@ ga('send', 'pageview');")
                 (map toc-book-details))
 
             [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl ]]]
-          [:script {:type "text/javascript" :src "hiliter.js"}]]])))
+          [:script {:type "text/javascript" :src "hiliter.js"}]
+          [:script {:type "text/javascript"}
+           "document.kj = document.kj || {}; document.kj.scrolltop = true;"]]])))
 
 (defn chapters [m]
   (->> m
@@ -564,7 +602,9 @@ ga('send', 'pageview');")
               (chapter-name ch)]
             (map-indexed #(verse %1 ch %2) verses)
             [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl]]
-            [:script {:type "text/javascript" :src "hiliter.js"}]]]])))
+            [:script {:type "text/javascript" :src "hiliter.js"}]
+            [:script {:type "text/javascript"}
+             "document.kj = document.kj || {}; document.kj.centeractive = true;"]]]])))
 
 (defn next-chapter [all-chapters i]
   (get all-chapters (inc i)))
