@@ -24,6 +24,9 @@ var config = (function parse_commandline() {
         bible_src: 'kjv-src/www.staggs.pair.com-kjbp/kjv.txt',
         bible_parser: 'staggs',
     };
+    if(!argv.bucket && argv.prod) {
+        argv.bucket = "kingjames-prod";
+    }
     return _.merge(default_config, argv);
 })();
 
