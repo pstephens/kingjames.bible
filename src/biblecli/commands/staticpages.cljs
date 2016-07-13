@@ -42,7 +42,6 @@ a:hover, a:active {
   color: #77f;
 }
 .content {
-  font-size: 125%;
   background-color: white;
 }
 .ref {
@@ -71,9 +70,6 @@ a:hover, a:active {
   line-height: 1.2em;
   text-indent: 0;
 }
-.votd {
-  min-height: 4em;
-}
 .ps119h {
   margin-top: 0.6em;
   margin-bottom: 0.3em;
@@ -84,12 +80,14 @@ a:hover, a:active {
 .book, .main {
   display: none;
 }
-.book a.back {
-  font-size: 0.67em;
-  font-weight: normal;
-  margin-left: 1em;
+.book div.back h2 {
+  display: inline-block;
+  margin-right: 0.5em;
 }
-.books a, .chapters a {
+.book div.back a {
+  display: inline-block;
+}
+.books a, .chapters a, .menu a {
   display: inline-block;
   display: inline-flex;
   justify-content: center;
@@ -106,6 +104,13 @@ a:hover, a:active {
 .chapters a {
   min-width: 3.7ex;
 }
+.menu a {
+  padding: 2px 1.3ex;
+  margin: 0.75ex;
+}
+.menu span {
+  display: none;
+}
 .toc .active {
   display: block;
 }
@@ -119,7 +124,7 @@ a:hover, a:active {
   margin: 0.5em 0 -0.25em 0;
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 1300px) {
   .menu {
     position: fixed;
   }
@@ -144,7 +149,11 @@ a:hover, a:active {
     background-color: #DDD;
     overflow-y: scroll;
   }
+  .votd {
+    min-height: 4em;
+  }
   .content {
+    font-size: 125%;
     width: 600px;
     margin: 25px auto 15px auto;
     border: 1px solid #BBB;
@@ -155,7 +164,7 @@ a:hover, a:active {
   }
 }
 
-@media (min-width: 680px) and (max-width: 1100px) {
+@media (min-width: 680px) and (max-width: 1300px) {
   .menu {
     position: fixed;
     top: 0;
@@ -167,10 +176,10 @@ a:hover, a:active {
     background-color: #FFFFFF;
     border: 1px solid #BBB;
     text-align: right;
-    padding: 6px 25px;
+    padding: 0;
     position: absolute;
     left: -26px;
-    width: 600px;
+    width: 650px;
   }
 }
 
@@ -195,7 +204,7 @@ a:hover, a:active {
     background-color: #FFFFFF;
     border-bottom: 1px solid #BBB;
     text-align: right;
-    padding: 6px 25px;
+    padding: 0;
     position: absolute;
     right: 0;
     width: 100%;
@@ -430,8 +439,9 @@ ga('send', 'pageview');")
         id (:id b)
         bookid (book-elem-id id)]
     [:div.book {:id (str "_" bookid)}
-      [:h2.chapter (book-name-nbsp id) " "
-       [:a.back {:href "#"} "Table of Contents"]]
+      [:div.back
+        [:h2 (book-name-nbsp id)]
+        [:a {:href "#"} "Table of Contents"]]
       [:div.chapters
         (->> chapters
              (map (fn [ch]
@@ -566,10 +576,10 @@ ga('send', 'pageview');")
       (number-markup i ch)
       (tokens-to-markup tokens)]))
 
-(defn chapter-url [ch inner]
+(defn chapter-url [ch inner rel]
   (if ch
-    [:a {:href (rel-url ch)} inner]
-    inner))
+    [:a {:href (rel-url ch) :rel rel} inner]
+    [:a inner]))
 
 (defn chapter
   [{book-id :book-id
@@ -594,10 +604,10 @@ ga('send', 'pageview');")
             [:div.menu
               [:div.menu2
                 [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
-                "&nbsp; "
-                (chapter-url prev-ch "&lt;&lt;")
-                "&nbsp; "
-                (chapter-url next-ch "&gt;&gt;")]]
+                [:span " "]
+                (chapter-url prev-ch "&lt;&lt;" "prev")
+                [:span " "]
+                (chapter-url next-ch "&gt;&gt;" "next")]]
             [:h1.chap
               (chapter-name ch)]
             (map-indexed #(verse %1 ch %2) verses)
