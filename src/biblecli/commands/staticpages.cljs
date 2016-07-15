@@ -224,6 +224,7 @@ a:hover, a:active {
 
 document.kj = document.kj || {};
 
+var isOperaMini = Object.prototype.toString.call(window.operamini) === \"[object OperaMini]\"
 var activeId = '_main';
 
 function FindElem(id)
@@ -270,7 +271,7 @@ function SetActive()
 
 function ScrollToY(y)
 {
-  if(window.scrollY !== y) {
+  if(!isOperaMini && window.scrollY !== y) {
     window.scrollTo(window.scrollX, y);
   }
 }
