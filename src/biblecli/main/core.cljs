@@ -21,6 +21,7 @@
     [biblecli.commands.normalize]
     [biblecli.commands.prepare]
     [biblecli.commands.serve]
+    [biblecli.commands.sitemap]
     [biblecli.commands.staticpages]
     [biblecli.commands.verseoftheday]
     [biblecli.main.utility :as u]
@@ -76,6 +77,7 @@
    "normalize"     #'biblecli.commands.normalize/normalize
    "prepare"       #'biblecli.commands.prepare/prepare
    "serve"         #'biblecli.commands.serve/serve
+   "sitemap"       #'biblecli.commands.sitemap/sitemap
    "static"        #'biblecli.commands.staticpages/static
    "verseoftheday" #'biblecli.commands.verseoftheday/verseoftheday})
 

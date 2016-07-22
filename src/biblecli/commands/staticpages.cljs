@@ -623,27 +623,6 @@ ga('send', 'pageview');")
 (defn prev-chapter [all-chapters i]
   (get all-chapters (dec i)))
 
-(defn sitemap-line [rel-url freq priority baseurl]
-  (str
-    "<url><loc>"
-    (join-url baseurl rel-url)
-    "</loc><changefreq>"
-    freq
-    "</changefreq><priority>"
-    priority
-    "</priority></url>
-"))
-
-(defn sitemap [chapters baseurl]
-  (apply str
-    (flatten [
-"<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">
-"
-(sitemap-line "" "daily" "0.8" baseurl)
-(map #(sitemap-line (rel-url %) "monthly" "1.0" baseurl) chapters)
-"</urlset>"])))
-
 (defn write! [dir filename content]
   (let [filepath (.join node-path dir filename)
         buff (js/Buffer content "utf8")]
@@ -673,7 +652,6 @@ ga('send', 'pageview');")
     (write! output-dir "styles.css" (style))
     (write! output-dir "hiliter.js" (js))
     (write! output-dir "robots.txt" (robots baseurl))
-    (write! output-dir "sitemap.xml" (sitemap all-chapters baseurl))
     (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical))
     (dorun
       (map-indexed

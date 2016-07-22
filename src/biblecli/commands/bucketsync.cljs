@@ -14,73 +14,13 @@
 
 (ns biblecli.commands.bucketsync
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [cljs.core.async :refer [to-chan chan put! tap mult <! buffer onto-chan] :as async]
+  (:require [biblecli.main.dir :refer [readdir-recursive]]
+            [cljs.core.async :refer [to-chan chan put! tap mult <! buffer onto-chan] :as async]
             [cljs.nodejs :refer [require process]]
             [clojure.string :as s]))
 
 (def AWS (require "aws-sdk"))
 (def fs (require "fs"))
-(def path (require "path"))
-
-(defn readdir [dir]
-  (let [chan (chan)
-        cb (fn [err data]
-             (put! chan [err data]))]
-    (.readdir fs dir cb)
-    chan))
-
-(defn stat [path]
-  (let [chan (chan)
-        cb (fn [err data]
-             (put! chan [err data]))]
-    (.stat fs path cb)
-    chan))
-
-(defn stat-file [dir reldir filename]
-  (let [fspath (.join path dir filename)
-        relpath (if (empty? reldir) filename (str reldir "/" filename))
-        statchan (stat fspath)]
-    [relpath fspath statchan]))
-
-(defn wait-all [filestatsasync]
-  (go
-    (loop [stats filestatsasync
-           acc []]
-      (let [head (first stats)
-            rest (rest stats)]
-        (if head
-          (let [[relpath fspath statchan] head
-                [err data] (<! statchan)]
-            (if err
-              [err nil]
-              (recur rest (conj acc [relpath fspath data]))))
-          [nil acc])))))
-
-(defn isdir [stat]
-  (.isDirectory stat))
-
-(defn readdir-recursive
-  ([dir] (readdir-recursive dir "" {}))
-  ([dir reldir acc]
-   (go
-     (let [[err files] (<! (readdir dir))]
-       (if err
-         [err nil]
-         (let [filestatsasync (->> files (map #(stat-file dir reldir %)) (doall))
-               [err filestats] (<! (wait-all filestatsasync))]
-           (if err
-             [err nil]
-             (loop [lst filestats acc acc]
-               (let [[relpath fspath stat] (first lst)
-                     rest (rest lst)]
-                 (if relpath
-                   (if (isdir stat)
-                     (let [[err acc] (<! (readdir-recursive fspath relpath acc))]
-                       (if err
-                         [err nil]
-                         (recur rest acc)))
-                     (recur rest (conj acc [relpath fspath])))
-                   [nil acc]))))))))))
 
 (defn s3-list-objects-1000 [s3 continuationToken]
   (let [chan (chan)

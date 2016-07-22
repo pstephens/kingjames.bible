@@ -193,7 +193,8 @@ gulp.task('build',
         'make_build_dir',
         gulp.parallel(
             biblecli_task('static', build_dir),
-            'build_votd')));
+            'build_votd'),
+        biblecli_task('sitemap', build_dir)));
 
 gulp.task('bucketsync',
     biblecli_task('bucketsync',

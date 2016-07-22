@@ -19,6 +19,7 @@
                        [gulp-uglify "1.5.3"]
                        [jasmine "2.4.1"]
                        [lodash "4.13.1"]
+                       [marked "0.3.5"]
                        [minimist "1.2.0"]
                        [mkdirp "0.5.1"]
                        [phantomjs2 "2.2.0"]
