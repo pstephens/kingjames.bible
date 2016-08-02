@@ -13,13 +13,12 @@
 ;;;;   limitations under the License.
 
 (ns biblecli.commands.staticpages
-  (:require-macros [hiccups.core :refer [html]])
   (:require
+    [biblecli.main.html :as h]
     [biblecli.main.utility :as u]
     [cljs.nodejs :refer [require]]
     [clojure.string :as s]
-    [common.normalizer.core :refer [parse]]
-    [hiccups.runtime]))
+    [common.normalizer.core :refer [parse]]))
 
 (def node-fs (require "fs"))
 (def node-path (require "path"))
@@ -325,12 +324,7 @@ m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 ga('create', 'UA-75078401-1', 'auto');
 ga('send', 'pageview');")
 
-(defn join-url [base rel]
-  (if (.endsWith base "/")
-    (str base rel)
-    (str base "/" rel)))
-
-(defn robots [baseurl] (str "Sitemap: " (join-url baseurl "sitemap.xml")))
+(defn robots [baseurl] (str "Sitemap: " (h/join-url baseurl "sitemap.xml")))
 
 (defn book-name [book-id]
   (let [m {
@@ -449,43 +443,35 @@ ga('send', 'pageview');")
                   (list [:a {:href (rel-url (:id b) (:num ch) chapcount)} (:num ch)]))))]]))
 
 (defn toc [m baseurl canonical]
-  (str "<!DOCTYPE html>"
-    (html
-      [:html {:lang "en"}
-        [:head
-          [:title "The King James Bible"]
-          [:meta {:name "description" :content "The King James Bible, the Holy Bible in English - Table of Contents"}]
-          [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-          [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]
-          [:link {:rel "canonical" :href canonical}]]
-        [:body
+  (h/html {:hilighter {:scrolltop true}
+           :title nil
+           :desc "Table of Contents"
+           :canonical canonical
+           :relurl ""}
           [:div.content.toc
-            [:h1 "The King James Bible"]
+           [:h1 "The King James Bible"]
 
-            [:div#_main.main.active
+           [:div#_main.main.active
 
-              [:div#votd.votd]
-              [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','votd/votd.js','votd','votd');"]
+            [:div#votd.votd]
+            [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','votd/votd.js','votd','votd');"]
 
-              [:h2 "The Old Testament"]
-              [:div.books
-                (->> m
+            [:h2 "The Old Testament"]
+            [:div.books
+             (->> m
                   (take 39)
                   (map toc-book))]
 
-              [:h2 "The New Testament"]
-              [:div.books
-                (->> m
+            [:h2 "The New Testament"]
+            [:div.books
+             (->> m
                   (drop 39)
                   (map toc-book))]]
 
            (->> m
                 (map toc-book-details))
 
-            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl ]]]
-          [:script {:type "text/javascript" :src "hiliter.js"}]
-          [:script {:type "text/javascript"}
-           "document.kj = document.kj || {}; document.kj.scrolltop = true;"]]])))
+           [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl ]]]))
 
 (defn chapters [m]
   (->> m
@@ -590,32 +576,23 @@ ga('send', 'pageview');")
    next-ch
    baseurl
    canonical]
-  (str
-    "<!DOCTYPE html>"
-    (html
-      [:html {:lang "en"}
-        [:head
-          [:title (str (chapter-name ch) " - The King James Bible")]
-          [:meta {:name "description" :content (str "The King James Bible, the Holy Bible in English - " (chapter-name ch))}]
-          [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
-          [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]
-          [:link {:rel "canonical" :href (join-url canonical (rel-url ch))}]]
-        [:body
+  (h/html {:hilighter {:centeractive true}
+           :title (chapter-name ch)
+           :desc (chapter-name ch)
+           :canonical canonical
+           :relurl (rel-url ch)}
           [:div.content.verses
-            [:div.menu
-              [:div.menu2
-                [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
-                [:span " "]
-                (chapter-url prev-ch "&lt;&lt;" "prev")
-                [:span " "]
-                (chapter-url next-ch "&gt;&gt;" "next")]]
-            [:h1.chap
-              (chapter-name ch)]
-            (map-indexed #(verse %1 ch %2) verses)
-            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl]]
-            [:script {:type "text/javascript" :src "hiliter.js"}]
-            [:script {:type "text/javascript"}
-             "document.kj = document.kj || {}; document.kj.centeractive = true;"]]]])))
+           [:div.menu
+            [:div.menu2
+             [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
+             [:span " "]
+             (chapter-url prev-ch "&lt;&lt;" "prev")
+             [:span " "]
+             (chapter-url next-ch "&gt;&gt;" "next")]]
+           [:h1.chap
+            (chapter-name ch)]
+           (map-indexed #(verse %1 ch %2) verses)
+           [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl]]]))
 
 (defn next-chapter [all-chapters i]
   (get all-chapters (inc i)))
