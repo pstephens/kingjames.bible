@@ -17,7 +17,8 @@
   (:require
     [biblecli.main.html :as h]
     [cljs.core.async :refer [chan put! <!]]
-    [cljs.nodejs :refer [require]]))
+    [cljs.nodejs :refer [require]]
+    [clojure.string :as string]))
 
 (def ^:private marked
   (let [marked (require "marked")]
@@ -41,6 +42,21 @@
     (.readFile fs input-path "utf8" cb)
     chan))
 
+(defn ^:private parse-markdown-props [data]
+  (let [lines (string/split-lines data)]
+    (loop [acc {}
+           i 0]
+      (let [line (lines i)]
+        (if line
+          (let [[_ k v] (re-find #"^:([^ ]+)\s+(.*)$" line)]
+            (if k
+              (recur (assoc acc (keyword k) v) (inc i))
+              (let [[_ title] (re-find #"^#\s+(.*)$" line)
+                    remaining (string/join "\r\n" (subvec lines i))]
+                (if title
+                  [remaining (assoc acc :title title)]
+                  [remaining acc])))))))))
+
 (defn ^:private writefile [output-path data]
   (let [chan (chan)
         cb (fn [err data]
@@ -57,7 +73,13 @@
           [err markdown] (<! (readfile input-path))]
       (if err
         [err nil]
-        (let [markup (marked markdown)
+        (let [[markdown opts2] (parse-markdown-props markdown)
+              opts (merge opts opts2)
+              markup (marked markdown)
+              markup (h/html (merge opts {:relurl name})
+                             [:div.content
+                              (h/menu (h/menubutton "." "H"))
+                              markup])
               [err _] (<! (writefile output-path markup))]
           (if err
             [err nil]
@@ -77,7 +99,8 @@
   [{[input-dir output-dir] :_ baseurl :baseurl canonical :canonical}]
   (go
     (let [[err all-files] (<! (readdir input-dir))
-          opts {}]
+          opts {:baseurl baseurl
+                :canonical canonical}]
       (if err
         [err nil]
         (let [tasks (->>

@@ -22,7 +22,7 @@ var config = (function parse_commandline() {
         region: "us-east-1",
         bucket: "kingjames-beta",
         bible_src: 'kjv-src/www.staggs.pair.com-kjbp/kjv.txt',
-        bible_parser: 'staggs',
+        bible_parser: 'staggs'
     };
     if(!argv.bucket && argv.prod) {
         argv.bucket = "kingjames-prod";
@@ -31,7 +31,7 @@ var config = (function parse_commandline() {
 })();
 
 var build_config = config.prod ? "prod" : "beta";
-var root_dir = __dirname
+var root_dir = __dirname;
 var node_exec_path = process.execPath;
 var out_bible_dir = path.join(root_dir, 'out/bible');
 var build_dir = path.join(root_dir, 'out/' + build_config);
@@ -39,6 +39,7 @@ var temp_dir = path.join(root_dir, 'out/temp');
 var votd_dir = path.join(build_dir, 'votd');
 var votd_jasmine_dir = path.join(votd_dir, 'jasmine');
 var temp_votd_dir = path.join(temp_dir, 'votd');
+var markdown_dir = path.join(root_dir, 'src/content');
 
 function output_to(name, stream) {
     return function output_to(buff) {
@@ -193,6 +194,7 @@ gulp.task('build',
         'make_build_dir',
         gulp.parallel(
             biblecli_task('static', build_dir),
+            biblecli_task('markdown', markdown_dir, build_dir),
             'build_votd'),
         biblecli_task('sitemap', build_dir)));
 

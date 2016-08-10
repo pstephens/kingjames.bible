@@ -44,3 +44,11 @@
           (if (not= hilighter {})
             [:script {:type "text/javascript"}
             (str "document.kj=" (.stringify js/JSON (clj->js hilighter)))])]]))))
+
+(defn menu [& inner]
+ [:div.menu
+  [:div.menu2
+   inner]])
+
+(defn menubutton [url label]
+  [:a {:href url} label])

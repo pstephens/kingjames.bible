@@ -582,13 +582,12 @@ ga('send', 'pageview');")
            :canonical canonical
            :relurl (rel-url ch)}
           [:div.content.verses
-           [:div.menu
-            [:div.menu2
+           (h/menu
              [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
              [:span " "]
              (chapter-url prev-ch "&lt;&lt;" "prev")
              [:span " "]
-             (chapter-url next-ch "&gt;&gt;" "next")]]
+             (chapter-url next-ch "&gt;&gt;" "next"))
            [:h1.chap
             (chapter-name ch)]
            (map-indexed #(verse %1 ch %2) verses)
