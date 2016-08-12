@@ -13,28 +13,31 @@ var q =       require('q');
 
 var config = (function parse_commandline() {
     var argv_opts = {
-        boolean: ['prod'],
-        alias: {prod: 'p'}
+        string: ['config'],
+        alias: {config: 'c'}
     };
     var argv = require("minimist")(process.argv.slice(2), argv_opts);
     var default_config = {
-        profile: "default",
-        region: "us-east-1",
-        bucket: "kingjames-beta",
         bible_src: 'kjv-src/www.staggs.pair.com-kjbp/kjv.txt',
-        bible_parser: 'staggs'
+        bible_parser: 'staggs',
+        name: argv.config
     };
-    if(!argv.bucket && argv.prod) {
-        argv.bucket = "kingjames-prod";
+
+    var config;
+    if(argv.config) {
+        config = JSON.parse(fs.readFileSync(path.join("configs", argv.config + ".json")));
     }
-    return _.merge(default_config, argv);
+    else {
+        config = {};
+    }
+
+    return _.merge(default_config, config, argv);
 })();
 
-var build_config = config.prod ? "prod" : "beta";
 var root_dir = __dirname;
 var node_exec_path = process.execPath;
 var out_bible_dir = path.join(root_dir, 'out/bible');
-var build_dir = path.join(root_dir, 'out/' + build_config);
+var build_dir = path.join(root_dir, 'out/' + config.name);
 var temp_dir = path.join(root_dir, 'out/temp');
 var votd_dir = path.join(build_dir, 'votd');
 var votd_jasmine_dir = path.join(votd_dir, 'jasmine');
@@ -170,7 +173,11 @@ gulp.task('copy_votd_tests', function copy_votd_tests() {
 gulp.task('build_votd_js',
     gulp.series(
         'make_temp_votd_dir',
-        biblecli_task('verseoftheday', 'src/votd/verse-list.md', temp_votd_dir),
+        biblecli_task('verseoftheday',
+            '--parser', config.bible_parser,
+            '--input', config.bible_src,
+            'src/votd/verse-list.md',
+            temp_votd_dir),
         gulp.parallel(
             function copy_client_html() {
                 return gulp.src(path.join(temp_votd_dir, 'client.html'))
@@ -193,7 +200,12 @@ gulp.task('build',
         'clean',
         'make_build_dir',
         gulp.parallel(
-            biblecli_task('static', build_dir),
+            biblecli_task('static',
+                '--parser', config.bible_parser,
+                '--input', config.bible_src,
+                '--canonical', config.canonical,
+                '--baseurl', config.baseurl,
+                build_dir),
             biblecli_task('markdown', markdown_dir, build_dir),
             'build_votd'),
         biblecli_task('sitemap', build_dir)));
