@@ -1,0 +1,7 @@
+{
+    "profile": "default",
+    "region": "us-east-1",
+    "bucket": "kingjames-beta",
+    "canonical": "https://kingjames.bible",
+    "baseurl": "https://beta.kingjames.bible"
+}
