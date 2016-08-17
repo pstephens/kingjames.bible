@@ -114,7 +114,8 @@
         (run-command fn isAsync args)
         (do
           (printcommandnotfound command)
-          (printallcommands))))
+          (printallcommands)
+          (.exit process 1))))
     (catch :default e
       (do
         (println e)
