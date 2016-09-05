@@ -99,8 +99,10 @@
   [{[input-dir output-dir] :_ baseurl :baseurl canonical :canonical}]
   (go
     (let [[err all-files] (<! (readdir input-dir))
+          [_ data] (<! (h/modernizr-script))
           opts {:baseurl baseurl
                 :canonical canonical}]
+      (println "Modernizr: " data)
       (if err
         [err nil]
         (let [tasks (->>

@@ -14,7 +14,9 @@
 
 (ns biblecli.main.html
   (:require-macros [hiccups.core :as hiccups])
-  (:require [hiccups.runtime]))
+  (:require [cljs.core.async :refer [chan put!]]
+            [cljs.nodejs :refer [require]]
+            [hiccups.runtime]))
 
 (defn join-url [base rel]
   (if (.endsWith base "/")
@@ -44,6 +46,17 @@
           (if (not= hilighter {})
             [:script {:type "text/javascript"}
             (str "document.kj=" (.stringify js/JSON (clj->js hilighter)))])]]))))
+
+(defn modernizr-script []
+  (let [m (require "modernizr")
+        ch (chan)
+        cb (fn [res]
+             (put! ch [nil res]))
+        opts #js {:minify true
+                  :options #js ["setClasses"]
+                  :feature-detects #js ["test/svg/asimg"]}]
+    (.build m opts cb)
+    ch))
 
 (defn menu [& inner]
  [:div.menu

@@ -92,9 +92,11 @@ function biblecli(cmd, args) {
 
 function biblecli_task(cmd, args) {
     args = _.slice(arguments);
-    return function biblecli_task() {
+    var f = function biblecli_task() {
         return biblecli.apply(null, args).promise;
     }
+    f.displayName = "biblecli " + args[0];
+    return f;
 }
 
 function mkdir_task(dir) {
