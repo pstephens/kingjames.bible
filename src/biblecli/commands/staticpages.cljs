@@ -13,9 +13,11 @@
 ;;;;   limitations under the License.
 
 (ns biblecli.commands.staticpages
+  (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
     [biblecli.main.html :as h]
     [biblecli.main.utility :as u]
+    [cljs.core.async :refer [chan put! <!]]
     [cljs.nodejs :refer [require]]
     [clojure.string :as s]
     [common.normalizer.core :refer [parse]]))
@@ -314,15 +316,7 @@ domready(function() {
   DoScroll();
 });
 
-})(document, window);
-
-// Google Analytics
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-ga('create', 'UA-75078401-1', 'auto');
-ga('send', 'pageview');")
+})(document, window);")
 
 (defn robots [baseurl] (str "Sitemap: " (h/join-url baseurl "sitemap.xml")))
 
@@ -442,12 +436,13 @@ ga('send', 'pageview');")
              (map (fn [ch]
                   (list [:a {:href (rel-url (:id b) (:num ch) chapcount)} (:num ch)]))))]]))
 
-(defn toc [m baseurl canonical]
+(defn toc [m baseurl canonical modernizr-script]
   (h/html {:hilighter {:scrolltop true}
            :title nil
            :desc "Table of Contents"
            :canonical canonical
-           :relurl ""}
+           :relurl ""
+           :modernizr modernizr-script}
           [:div.content.toc
            [:h1 "The King James Bible"]
 
@@ -575,12 +570,14 @@ ga('send', 'pageview');")
    prev-ch
    next-ch
    baseurl
-   canonical]
+   canonical
+   modernizr-script]
   (h/html {:hilighter {:centeractive true}
            :title (chapter-name ch)
            :desc (chapter-name ch)
            :canonical canonical
-           :relurl (rel-url ch)}
+           :relurl (rel-url ch)
+           :modernizr modernizr-script}
           [:div.content.verses
            (h/menu
              [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
@@ -612,32 +609,36 @@ ga('send', 'pageview');")
    --canonical <url>      The canonical url. Defaults to https://kingjames.bible.
    --baseurl <url>        The base url. Defaults to https://beta.kingjames.bible.
    <output-path>          Output directory to place the resource files."
+   :async true
    :cmdline-opts {:string ["parser" "input" "baseurl" "canonical"]
                   :default {:parser nil
                             :input nil
                             :baseurl "https://beta.kingjames.bible"
                             :canonical "https://kingjames.bible"}}}
   [{parser :parser input :input output-dir :_ baseurl :baseurl canonical :canonical}]
-  (if (not= (count output-dir) 1)
-    (throw "Must have exactly one <output-path> parameter."))
-  (let [parser (or parser (u/default-parser))
-        input  (or input (u/default-parser-input))
-        m (parse parser input)
-        all-chapters (chapters m)
-        output-dir (first output-dir)]
-    (write! output-dir "styles.css" (style))
-    (write! output-dir "hiliter.js" (js))
-    (write! output-dir "robots.txt" (robots baseurl))
-    (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical))
-    (dorun
-      (map-indexed
-        #(write!
-          output-dir
-          (rel-url %2)
-          (chapter
-            %2
-            (prev-chapter all-chapters %1)
-            (next-chapter all-chapters %1)
-            baseurl
-            canonical))
-        all-chapters))))
+  (go
+    (if (not= (count output-dir) 1)
+      (throw "Must have exactly one <output-path> parameter."))
+    (let [parser (or parser (u/default-parser))
+          input  (or input (u/default-parser-input))
+          m (parse parser input)
+          all-chapters (chapters m)
+          output-dir (first output-dir)
+          [_ modernizr] (<! (h/modernizr-script))]
+      (write! output-dir "styles.css" (style))
+      (write! output-dir "hiliter.js" (js))
+      (write! output-dir "robots.txt" (robots baseurl))
+      (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical modernizr))
+      (dorun
+        (map-indexed
+          #(write!
+            output-dir
+            (rel-url %2)
+            (chapter
+              %2
+              (prev-chapter all-chapters %1)
+              (next-chapter all-chapters %1)
+              baseurl
+              canonical
+              modernizr))
+          all-chapters)))))

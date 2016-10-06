@@ -14,7 +14,8 @@ var q =       require('q');
 var config = (function parse_commandline() {
     var argv_opts = {
         string: ['config'],
-        alias: {config: 'c'}
+        alias: {config: 'c'},
+        default: {'config': 'beta'}
     };
     var argv = require("minimist")(process.argv.slice(2), argv_opts);
     var default_config = {
