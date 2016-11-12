@@ -1,4 +1,4 @@
-<svg id="Home2" xmlns="http://www.w3.org/2000/svg" width="116.344" height="106" viewBox="0 0 116.344 106">
+<svg id="Home2" xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
   <defs>
     <style>
       .cls-1 {
@@ -8,7 +8,7 @@
       }
     </style>
   </defs>
-  <path id="Roof" class="cls-1" d="M386.35,171.75l-7.8,10.4-49.4-35.1L280,182l-9-10,58.15-41.85Z" transform="translate(-270.5 -128.5)"/>
-  <path id="Chimney" class="cls-1" d="M351,137l12,9V130H351" transform="translate(-270.5 -128.5)"/>
-  <path id="House" class="cls-1" d="M329,155l-45,31v48h18V193h23v41h47V186Z" transform="translate(-270.5 -128.5)"/>
+  <path id="Roof" class="cls-1" d="M385,172l-9,10-47-35-49,35-9-10,58-42Z" transform="translate(-264 -118)"/>
+  <path id="Chimney" class="cls-1" d="M350,130h14v19l-14-10v-9Z" transform="translate(-264 -118)"/>
+  <path id="House" class="cls-1" d="M329,155l-45,31v48h18V193h23v41h47V186Z" transform="translate(-264 -118)"/>
 </svg>
