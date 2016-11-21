@@ -223,7 +223,9 @@ gulp.task('build',
             'build_votd',
             'copy_svg',
             'copy_png'),
-        biblecli_task('sitemap', build_dir)));
+        biblecli_task('sitemap',
+            '--baseurl', config.baseurl,
+            build_dir)));
 
 gulp.task('bucketsync',
     biblecli_task('bucketsync',

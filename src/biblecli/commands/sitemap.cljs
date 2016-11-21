@@ -60,7 +60,7 @@
 
 (defn sitemap
   {:summary "Generates the sitemap for a directory and all sub-directories."
-   :doc "usage: biblecli sitemap [--output <output-path>] <input-path>
+   :doc "usage: biblecli sitemap [--output <output-path>] [--baseurl <url>] <input-path>
    <input-path>           Input directory to scan recursively.
    --output <output-path> Output path to save the sitemap file to. Defaults to 'sitemap.xml' relative to the input directory.
    --baseurl <url>        The base url. Defaults to https://beta.kingjames.bible."
