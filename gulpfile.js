@@ -173,6 +173,16 @@ gulp.task('copy_votd_tests', function copy_votd_tests() {
             .pipe(gulp.dest(votd_dir));
 });
 
+gulp.task('copy_svg', function copy_svg() {
+    return gulp.src('artwork/*.svg')
+               .pipe(gulp.dest(build_dir));
+});
+
+gulp.task('copy_png', function copy_png() {
+    return gulp.src('artwork/*.png')
+               .pipe(gulp.dest(build_dir));
+})
+
 gulp.task('build_votd_js',
     gulp.series(
         'make_temp_votd_dir',
@@ -210,7 +220,9 @@ gulp.task('build',
                 '--baseurl', config.baseurl,
                 build_dir),
             biblecli_task('markdown', markdown_dir, build_dir),
-            'build_votd'),
+            'build_votd',
+            'copy_svg',
+            'copy_png'),
         biblecli_task('sitemap', build_dir)));
 
 gulp.task('bucketsync',

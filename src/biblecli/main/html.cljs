@@ -71,5 +71,15 @@ ga('send', 'pageview');")
   [:div.menu2
    inner]])
 
-(defn menubutton [url label]
-  [:a {:href url} label])
+(defn link-label [url label]
+  [:a {:href url :class "tbtn"} label])
+
+(defn link-img
+  ([url src alt] (link-img url src alt {}))
+  ([url src alt attributes]
+  [:a (merge attributes
+             {:href url
+              :class "ibtn"})
+   [:img {:src src
+          :alt alt}]
+   [:span]]))

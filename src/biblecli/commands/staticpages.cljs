@@ -88,29 +88,44 @@ a:hover, a:active {
 .book div.back a {
   display: inline-block;
 }
-.books a, .chapters a, .menu a {
+a.tbtn, a.ibtn {
   display: inline-block;
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
   text-align: center;
-  min-height: 3.7ex;
+  vertical-align: middle;
+  height: 3.7ex;
   padding: 2px;
-  margin: 2px;
+  margin: 2px 0 2px 4px;
   background-color: rgba(0,0,0,0.05);
 }
-.books a {
+.books a.tbtn {
   min-width: 17.5ex;
 }
-.chapters a {
-  min-width: 3.7ex;
-}
-.menu a {
-  padding: 2px 1.3ex;
-  margin: 0.75ex;
-}
-.menu span {
+.menu2 > span {
   display: none;
+}
+.menu2 {
+  text-align: right;
+}
+a.ibtn > img {
+  width: 30px;
+  height: 30px;
+  vertical-align: middle;
+  opacity: 0.5;
+}
+a.ibtn > span {
+  height: 100%;
+  vertical-align: middle;
+  display: inline-block;
+}
+a.ibtn {
+  padding: 2px;
+  width: 3.7ex;
+  height: 3.7ex;
+}
+a.tbtn {
+  padding: 2px 1.3ex;
+  height: 3.7ex;
+  line-height: 3.7ex;
 }
 .toc .active {
   display: block;
@@ -139,7 +154,7 @@ a:hover, a:active {
     border-left: 1px solid #BBB;
     border-bottom: 1px solid #BBB;
     border-top: 1px solid #BBB;
-    padding: 6px;
+    padding: 6px 0 6px 6px;
     border-bottom-left-radius: 6px;
     border-top-left-radius: 6px;
   }
@@ -176,7 +191,6 @@ a:hover, a:active {
     font-size: 80%;
     background-color: #FFFFFF;
     border: 1px solid #BBB;
-    text-align: right;
     padding: 0;
     position: absolute;
     left: -26px;
@@ -204,7 +218,6 @@ a:hover, a:active {
     font-size: 80%;
     background-color: #FFFFFF;
     border-bottom: 1px solid #BBB;
-    text-align: right;
     padding: 0;
     position: absolute;
     right: 0;
@@ -420,7 +433,7 @@ domready(function() {
         chapcount (count chapters)
         id (:id b)
         bookid (book-elem-id id)]
-     [:a {:href (if (> chapcount 1) (str "#" bookid) bookid)} (book-name-nbsp id)]))
+     (h/link-label (if (> chapcount 1) (str "#" bookid) bookid) (book-name-nbsp id))))
 
 (defn toc-book-details [b]
   (let [chapters (:chapters b)
@@ -430,11 +443,11 @@ domready(function() {
     [:div.book {:id (str "_" bookid)}
       [:div.back
         [:h2 (book-name-nbsp id)]
-        [:a {:href "#"} "Table of Contents"]]
+        [:a {:href "."} "Table of Contents"]]
       [:div.chapters
         (->> chapters
              (map (fn [ch]
-                  (list [:a {:href (rel-url (:id b) (:num ch) chapcount)} (:num ch)]))))]]))
+                  (list (h/link-label (rel-url (:id b) (:num ch) chapcount) (:num ch))))))]]))
 
 (defn toc [m baseurl canonical modernizr-script]
   (h/html {:hilighter {:scrolltop true}
@@ -558,10 +571,10 @@ domready(function() {
       (number-markup i ch)
       (tokens-to-markup tokens)]))
 
-(defn chapter-url [ch inner rel]
+(defn chapter-url [ch img alt rel]
   (if ch
-    [:a {:href (rel-url ch) :rel rel} inner]
-    [:a inner]))
+    (h/link-img (rel-url ch) img alt {:rel rel})
+    (h/link-img "" img alt)))
 
 (defn chapter
   [{book-id :book-id
@@ -580,11 +593,17 @@ domready(function() {
            :modernizr modernizr-script}
           [:div.content.verses
            (h/menu
-             [:a {:href (str ".#" (book-elem-id book-id))} (chapter-name ch)]
+             (h/link-img "." "home.svg" "Home")
              [:span " "]
-             (chapter-url prev-ch "&lt;&lt;" "prev")
+             (chapter-url prev-ch "left-arrow.svg" "Previous Chapter" "prev")
              [:span " "]
-             (chapter-url next-ch "&gt;&gt;" "next"))
+             (chapter-url next-ch "right-arrow.svg" "Next Chapter", "next")
+             [:br]
+             (h/link-label "." (book-name book-id))
+             (if (> (:chap-cnt ch) 1)
+               (list
+                 [:span " "]
+                 (h/link-label (str ".#" (book-elem-id book-id)) (:num ch)))))
            [:h1.chap
             (chapter-name ch)]
            (map-indexed #(verse %1 ch %2) verses)
