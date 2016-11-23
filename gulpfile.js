@@ -3,13 +3,13 @@ var cp =      require('child_process');
 var del =     require('del');
 var fs =      require('fs');
 var gulp =    require('gulp');
-var uglify =  require('gulp-uglify');
 var jasmine = require('jasmine-core').files;
+var less =    require('less');
 var mkdirp =  require('mkdirp');
 var os =      require('os');
 var path =    require('path');
 var phantom = require('phantomjs2');
-var q =       require('q');
+var uglify =  require('gulp-uglify');
 
 var config = (function parse_commandline() {
     var argv_opts = {
@@ -57,28 +57,30 @@ function output_to(name, stream) {
 }
 
 function spawn(name, command, args, options) {
-    var deferred = q.defer();
     args = args || [];
     options = Object.assign({ cwd: root_dir }, options || {});
+    let proc = cp.spawn(command, args, options);
 
-    var proc = cp.spawn(command, args, options);
-    proc.stdout.on('data', output_to(name, process.stdout));
-    proc.stderr.on('data', output_to(name, process.stderr));
-    proc.on('close', function(code) {
-        if(code) {
-            deferred.reject(new Error(name + ': failed with exit code ' + code));
-        }
-        else {
-            deferred.resolve();
-        }
-    });
-    proc.on('error', function(err) {
-        deferred.reject(err);
-    });
+    let p = new Promise(
+        function (resolve, reject) {
+            proc.stdout.on('data', output_to(name, process.stdout));
+            proc.stderr.on('data', output_to(name, process.stderr));
+            proc.on('close', function(code) {
+                    if(code) {
+                        reject(new Error(name + ': failed with exit code ' + code));
+                    }
+                    else {
+                        resolve();
+                    }
+                });
+            proc.on('error', function(err) {
+                reject(err);
+            });
+        });
 
     return {
         proc: proc,
-        promise: deferred.promise
+        promise: p
     };
 }
 
@@ -208,11 +210,65 @@ gulp.task('build_votd',
         'copy_votd_tests',
         'build_votd_js'));
 
+less.logger.addListener({
+    info: msg => console.log(msg),
+    warn: msg => console.warn(msg),
+    error: msg => console.error(msg)
+});
+
+gulp.task('css',
+    function compile_less() {
+        function read() {
+            return new Promise(
+                (resolve, reject) =>
+                    fs.readFile(path.join(root_dir, 'src/content/css/styles.less'), "utf8",
+                        (err, data) => {
+                            if(err) reject(err);
+                            else resolve(data);
+                        }));
+        }
+
+        function compile(data) {
+            let opts = {
+                compress: true,
+                filename: "styles.less",
+                sourceMap: {
+                    soiurceMapInputFilename: "styles.less",
+                    sourceMapOutputFilename: "styles.css",
+                    sourceMapFullFilename: "styles.css.map",
+                    sourceMapFilename: "styles.css.map",
+                    sourceMapBasepath: "",
+                    sourceMapRootPath: ""
+                }
+            }
+            return less.render(data, opts);
+        }
+
+        function write(filename, data) {
+            return new Promise(
+                (resolve, reject) =>
+                    fs.writeFile(path.join(build_dir, filename), data, (err, data) => {
+                        if(err) reject(err);
+                        else resolve(data);
+                    }));
+        }
+
+        return read()
+            .then(input =>
+                Promise.all([
+                    compile(input)
+                        .then(output => Promise.all([
+                            write("styles.css", output.css),
+                            write("styles.css.map", output.map)])),
+                    write("styles.less", input)]));
+    });
+
 gulp.task('build',
     gulp.series(
         'clean',
         'make_build_dir',
         gulp.parallel(
+            'css',
             biblecli_task('static',
                 '--parser', config.bible_parser,
                 '--input', config.bible_src,

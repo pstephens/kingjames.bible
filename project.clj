@@ -18,6 +18,7 @@
                        [gulp "gulpjs/gulp.git#4.0"]
                        [gulp-uglify "1.5.3"]
                        [jasmine "2.4.1"]
+                       [less "2.7.1"]
                        [lodash "4.13.1"]
                        [marked "0.3.5"]
                        [minimist "1.2.0"]
