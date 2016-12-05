@@ -230,7 +230,7 @@ gulp.task('css',
 
         function compile(data) {
             let opts = {
-                compress: true,
+                compress: false,
                 filename: "styles.less",
                 sourceMap: {
                     soiurceMapInputFilename: "styles.less",

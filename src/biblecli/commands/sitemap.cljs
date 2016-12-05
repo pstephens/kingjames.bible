@@ -55,7 +55,7 @@
                    "</urlset>"])))
 
 (defn write! [filepath content]
-  (let [buff (js/Buffer content "utf8")]
+  (let [buff (js/Buffer. content "utf8")]
     (.writeFileSync fs filepath buff)))
 
 (defn sitemap

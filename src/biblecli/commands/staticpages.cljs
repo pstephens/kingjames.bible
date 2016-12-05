@@ -25,10 +25,6 @@
 (def node-fs (require "fs"))
 (def node-path (require "path"))
 
-(defn style []
-"
-")
-
 (defn js []
 "
 /*!
@@ -236,7 +232,7 @@ domready(function() {
         chapcount (count chapters)
         id (:id b)
         bookid (book-elem-id id)]
-     (h/link-label (if (> chapcount 1) (str "#" bookid) bookid) (book-name-nbsp id))))
+    [:li [:a {:href (if (> chapcount 1) (str "#" bookid) bookid)} (book-name-nbsp id)]]))
 
 (defn toc-book-details [b]
   (let [chapters (:chapters b)
@@ -247,10 +243,10 @@ domready(function() {
       [:div.back
         [:h2 (book-name-nbsp id)]
         [:a {:href "."} "Table of Contents"]]
-      [:div.chapters
+      [:ul.chapters.btncontainer
         (->> chapters
              (map (fn [ch]
-                  (list (h/link-label (rel-url (:id b) (:num ch) chapcount) (:num ch))))))]]))
+                  [:li [:a {:href (rel-url (:id b) (:num ch) chapcount)} (:num ch)]])))]]))
 
 (defn toc [m baseurl canonical modernizr-script]
   (h/html {:hilighter {:scrolltop true}
@@ -268,13 +264,13 @@ domready(function() {
             [:script "(function(w,d,t,u,v,i,n,l){w['VotdObject']=v;w[v]=w[v]||{};w[v].i=i;n=d.createElement(t),l=d.getElementsByTagName(t)[0];n.async=1;n.src=u;l.parentNode.insertBefore(n,l)})(window,document,'script','votd/votd.js','votd','votd');"]
 
             [:h2 "The Old Testament"]
-            [:div.books
+            [:ul.books.btncontainer
              (->> m
                   (take 39)
                   (map toc-book))]
 
             [:h2 "The New Testament"]
-            [:div.books
+            [:ul.books.btncontainer
              (->> m
                   (drop 39)
                   (map toc-book))]]
@@ -376,8 +372,8 @@ domready(function() {
 
 (defn chapter-url [ch img alt rel]
   (if ch
-    (h/link-img (rel-url ch) img alt {:rel rel})
-    (h/link-img "" img alt)))
+    (h/img-button (rel-url ch) img alt {:rel rel})
+    (h/img-button "" img alt)))
 
 (defn chapter
   [{book-id :book-id
@@ -396,17 +392,17 @@ domready(function() {
            :modernizr modernizr-script}
           [:div.content.verses
            (h/menu
-             (h/link-img "." "home.svg" "Home")
+             (h/img-button "." "home.svg" "Home")
              [:span " "]
              (chapter-url prev-ch "left-arrow.svg" "Previous Chapter" "prev")
              [:span " "]
              (chapter-url next-ch "right-arrow.svg" "Next Chapter", "next")
              [:br]
-             (h/link-label "." (book-name book-id))
+             (h/text-button "." (book-name book-id))
              (if (> (:chap-cnt ch) 1)
                (list
                  [:span " "]
-                 (h/link-label (str ".#" (book-elem-id book-id)) (:num ch)))))
+                 (h/text-button (str ".#" (book-elem-id book-id)) (:num ch)))))
            [:h1.chap
             (chapter-name ch)]
            (map-indexed #(verse %1 ch %2) verses)
@@ -420,7 +416,7 @@ domready(function() {
 
 (defn write! [dir filename content]
   (let [filepath (.join node-path dir filename)
-        buff (js/Buffer content "utf8")]
+        buff (js/Buffer. content "utf8")]
     (.writeFileSync node-fs filepath buff)))
 
 (defn static
@@ -447,7 +443,6 @@ domready(function() {
           all-chapters (chapters m)
           output-dir (first output-dir)
           [_ modernizr] (<! (h/modernizr-script))]
-      (write! output-dir "styles.css" (style))
       (write! output-dir "hiliter.js" (js))
       (write! output-dir "robots.txt" (robots baseurl))
       (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical modernizr))

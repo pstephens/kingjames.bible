@@ -25,7 +25,6 @@
                        [mkdirp "0.5.1"]
                        [modernizr "3.3.1"]
                        [phantomjs2 "2.2.0"]
-                       [q "1.4.1"]
                        [source-map-support "0.4.0"]]}
 
   :jvm-opts ^:replace ["-Xmx1g" "-server"]

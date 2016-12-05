@@ -78,7 +78,7 @@
               markup (marked markdown)
               markup (h/html (merge opts {:relurl name})
                              [:div.content
-                              (h/menu (h/link-img "." "home.svg" "Home"))
+                              (h/menu (h/img-button "." "home.svg" "Home"))
                               markup])
               [err _] (<! (writefile output-path markup))]
           (if err

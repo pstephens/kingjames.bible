@@ -32,7 +32,7 @@
 (defn encode-data [name data]
   (let [writer     (t/writer :json)
         string     (t/write writer data)
-        utf8-buf   (js/Buffer string "utf8")
+        utf8-buf   (js/Buffer. string "utf8")
         h          (compute-hash utf8-buf)
         short-hash (subs h 0 hash-len)
         file-name  (str name "-" short-hash)]
@@ -76,7 +76,7 @@
           (reduce (fn [resources r] (assoc resources (:path r) r)) {}))
         writer (t/writer :json)
         string (t/write writer nocontent)]
-    (js/Buffer string "utf8")))
+    (js/Buffer. string "utf8")))
 
 (defn buffer->metadata [buffer]
   (let [reader    (t/reader :json)

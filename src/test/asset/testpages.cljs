@@ -38,7 +38,7 @@
   (let [path "/phantomtest.html"]
     [path
      (delay
-       (let [buff (js/Buffer (phantomtest-content bible-meta-data) "utf8")]
+       (let [buff (js/Buffer. (phantomtest-content bible-meta-data) "utf8")]
          {:path    path
           :content buff
           :headers {"Cache-Control"  "max-age=300, public"
