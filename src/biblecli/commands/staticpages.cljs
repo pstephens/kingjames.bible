@@ -129,7 +129,10 @@ domready(function() {
 
 })(document, window);")
 
-(defn robots [baseurl] (str "Sitemap: " (h/join-url baseurl "sitemap.xml")))
+(defn robots [baseurl allowrobots]
+  (if allowrobots
+    (str "Sitemap: " (h/join-url baseurl "sitemap.xml"))
+    (str "user-agent: *\nDisallow: /")))
 
 (defn book-name [book-id]
   (let [m {
@@ -434,14 +437,16 @@ domready(function() {
    --input <input-path>   Input path. Defaults to '{{default-parser-input}}'.
    --canonical <url>      The canonical url. Defaults to https://kingjames.bible.
    --baseurl <url>        The base url. Defaults to https://beta.kingjames.bible.
+   --allowrobots          Allow robots via robots.txt. By default robots are disallowed.
    <output-path>          Output directory to place the resource files."
    :async true
-   :cmdline-opts {:string ["parser" "input" "baseurl" "canonical"]
+   :cmdline-opts {:boolean ["allowrobots"]
+                  :string ["parser" "input" "baseurl" "canonical"]
                   :default {:parser nil
                             :input nil
                             :baseurl "https://beta.kingjames.bible"
                             :canonical "https://kingjames.bible"}}}
-  [{parser :parser input :input output-dir :_ baseurl :baseurl canonical :canonical}]
+  [{parser :parser input :input output-dir :_ baseurl :baseurl canonical :canonical allowrobots :allowrobots}]
   (go
     (if (not= (count output-dir) 1)
       (throw "Must have exactly one <output-path> parameter."))
@@ -452,7 +457,7 @@ domready(function() {
           output-dir (first output-dir)
           [_ modernizr] (<! (h/modernizr-script))]
       (write! output-dir "hiliter.js" (js))
-      (write! output-dir "robots.txt" (robots baseurl))
+      (write! output-dir "robots.txt" (robots baseurl allowrobots))
       (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical modernizr))
       (dorun
         (map-indexed

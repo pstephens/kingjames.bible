@@ -94,7 +94,7 @@ function biblecli(cmd, args) {
 }
 
 function biblecli_task(cmd, args) {
-    args = _.slice(arguments);
+    args = _.slice(arguments).filter(n => n != null);
     var f = function biblecli_task() {
         return biblecli.apply(null, args).promise;
     }
@@ -274,6 +274,7 @@ gulp.task('build',
                 '--input', config.bible_src,
                 '--canonical', config.canonical,
                 '--baseurl', config.baseurl,
+                (config.allowrobots ? "--allowrobots" : null),
                 build_dir),
             biblecli_task('markdown', markdown_dir, build_dir),
             'build_votd',

@@ -3,5 +3,6 @@
     "region": "us-east-1",
     "bucket": "kingjames-prod",
     "canonical": "https://kingjames.bible",
-    "baseurl": "https://kingjames.bible"
+    "baseurl": "https://kingjames.bible",
+    "allowrobots": true
 }
