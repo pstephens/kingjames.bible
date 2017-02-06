@@ -16,7 +16,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
     [cljs.core.async :refer [<!]]
-    [cljs.nodejs :refer [process require enable-util-print!]]
+    [cljs.nodejs :refer [process enable-util-print!]]
     [biblecli.commands.bucketsync]
     [biblecli.commands.markdown]
     [biblecli.commands.normalize]
@@ -88,7 +88,7 @@
         args (if (nil? args)
                #js[]
                (clj->js args))
-        minimist (require "minimist")
+        minimist (js/require "minimist")
         processed-args (minimist args opts)]
     (js->clj processed-args :keywordize-keys true)))
 

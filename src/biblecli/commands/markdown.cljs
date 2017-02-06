@@ -17,16 +17,15 @@
   (:require
     [biblecli.main.html :as h]
     [cljs.core.async :refer [chan put! <!]]
-    [cljs.nodejs :refer [require]]
     [clojure.string :as string]))
 
 (def ^:private marked
-  (let [marked (require "marked")]
+  (let [marked (js/require "marked")]
     (.setOptions marked #js {})
     marked))
 
-(def ^:private fs (require "fs"))
-(def ^:private path (require "path"))
+(def ^:private fs (js/require "fs"))
+(def ^:private path (js/require "path"))
 
 (defn ^:private readdir [dir]
   (let [chan (chan)

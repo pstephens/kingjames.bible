@@ -12,10 +12,9 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns biblecli.main.utility
-  (:require [cljs.nodejs :refer [require]]))
+(ns biblecli.main.utility)
 
-(def path (require "path"))
+(def path (js/require "path"))
 
 (def root-path (atom ""))
 

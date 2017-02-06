@@ -70,28 +70,40 @@ a:hover, a:active {
 
 .menu2 {
   text-align: right;
+  white-space: nowrap;
+  background-color: #FFFFFF;
+  position: absolute;
 
-  > span {
+  div.horz {
     display: none;
   }
 }
 
-.tbtn {
-  &:extend(.ibtn);
-  display: inline-block;
-  text-align: center;
-  vertical-align: middle;
-  height: 3.7ex;
-  padding: 2px;
-  margin: 2px 0 2px 4px;
-  background-color: rgba(0,0,0,0.05);
+/* Buttons and button containers */
+ul.btncontainer {
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: inline-block;
+
+    a {
+      display: inline-block;
+      text-align: center;
+      vertical-align: middle;
+      height: 3.7ex;
+      line-height: 3.7ex;
+      padding: 2px;
+      margin: 2px 0 2px 4px;
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+  }
 }
 
 /* Image Buttons */
 .ibtn {
   padding: 2px;
   width: 3.7ex;
-  height: 3.7ex;
 
   > img {
     width: 30px;
@@ -107,40 +119,18 @@ a:hover, a:active {
   }
 }
 
-/* Text Buttons */
 .tbtn {
-  padding: 2px 1.3ex;
-  height: 3.7ex;
-  line-height: 3.7ex;
-}
-
-
-
-/* Buttons and button containers */
-ul.btncontainer {
-  margin: 0;
-  padding: 0;
-
-  li {
-    display: inline-block;
-    text-align: center;
-    vertical-align: middle;
-    height: 3.7ex;
-    line-height: 3.7ex;
-    padding: 2px;
-    margin: 2px 0 2px 4px;
-    background-color: rgba(0,0,0,0.05);
-  }
+  min-width: 3.7ex;
 }
 
 ul.books {
-  li {
+  li a {
     min-width: 17.5ex;
   }
 }
 
 ul.chapters {
-  li {
+  li a {
     min-width: 3.7ex;
   }
 }
@@ -164,21 +154,83 @@ ul.chapters {
 @media (min-width: 1300px) {
   .menu {
     position: fixed;
+
+    .menu2 {
+      right: 25px;
+      border-left: 1px solid #BBB;
+      border-bottom: 1px solid #BBB;
+      border-top: 1px solid #BBB;
+      padding: 6px 0 6px 6px;
+      border-bottom-left-radius: 6px;
+      border-top-left-radius: 6px;
+
+      div.vert {
+        ul.bookref {
+          display: flex;
+          justify-content: flex-end;
+
+          li.book {
+            flex-grow: 1;
+            display: flex;
+
+            a {
+              flex-grow: 1;
+              padding: 2px 6px;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 1300px) {
+  .menu {
+    position: fixed;
+    top: 0;
+
+    .menu2 {
+      white-space: nowrap;
+      padding: 0;
+
+      div.horz {
+        display: block;
+      }
+
+      div.vert {
+        display: none;
+      }
+    }
+  }
+}
+
+@media (min-width: 680px) and (max-width: 1300px) {
+  .menu2 {
+    border: 1px solid #BBB;
+    left: -26px;
+    width: 650px;
+  }
+}
+
+@media (max-width: 680px) {
+  .content {
+    margin: 25px auto 15px auto;
+    padding: 0 12px 12px 12px;
   }
 
-  .menu2 {
-    white-space: nowrap;
-    font-family: Arial, sans-serif;
-    font-size: 80%;
-    position: absolute;
-    right: 25px;
-    background-color: #FFFFFF;
-    border-left: 1px solid #BBB;
-    border-bottom: 1px solid #BBB;
-    border-top: 1px solid #BBB;
-    padding: 6px 0 6px 6px;
-    border-bottom-left-radius: 6px;
-    border-top-left-radius: 6px;
+  .content.verses {
+    padding-top: 12px;
+  }
+
+  .menu {
+    width: 100%;
+    right: 0;
+
+    .menu2 {
+      border-bottom: 1px solid #BBB;
+      right: 0;
+      width: 100%;
+    }
   }
 }
 
@@ -201,54 +253,5 @@ ul.chapters {
     -webkit-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
     -moz-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
     box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
-  }
-}
-
-@media (min-width: 680px) and (max-width: 1300px) {
-  .menu {
-    position: fixed;
-    top: 0;
-  }
-
-  .menu2 {
-    white-space: nowrap;
-    font-family: Arial, sans-serif;
-    font-size: 80%;
-    background-color: #FFFFFF;
-    border: 1px solid #BBB;
-    padding: 0;
-    position: absolute;
-    left: -26px;
-    width: 650px;
-  }
-}
-
-@media (max-width: 680px) {
-  .content {
-    margin: 25px auto 15px auto;
-    padding: 0 12px 12px 12px;
-  }
-
-  .content.verses {
-    padding-top: 12px;
-  }
-
-  .menu {
-    position: fixed;
-    width: 100%;
-    right: 0;
-    top: 0;
-  }
-
-  .menu2 {
-    white-space: nowrap;
-    font-family: Arial, sans-serif;
-    font-size: 80%;
-    background-color: #FFFFFF;
-    border-bottom: 1px solid #BBB;
-    padding: 0;
-    position: absolute;
-    right: 0;
-    width: 100%;
   }
 }

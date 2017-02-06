@@ -15,7 +15,6 @@
 (ns biblecli.main.html
   (:require-macros [hiccups.core :as hiccups])
   (:require [cljs.core.async :refer [chan put!]]
-            [cljs.nodejs :refer [require]]
             [hiccups.runtime]))
 
 (defn join-url [base rel]
@@ -30,7 +29,7 @@ ga('create', 'UA-75078401-1', 'auto');
 ga('send', 'pageview');")
 
 (defn modernizr-script []
-  (let [m (require "modernizr")
+  (let [m (js/require "modernizr")
         ch (chan)
         cb (fn [res]
              (put! ch [nil res]))

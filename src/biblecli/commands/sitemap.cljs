@@ -15,11 +15,10 @@
 (ns biblecli.commands.sitemap
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [biblecli.main.dir :refer [readdir-recursive]]
-            [cljs.core.async :refer [<!]]
-            [cljs.nodejs :refer [require]]))
+            [cljs.core.async :refer [<!]]))
 
-(def ^:private path (require "path"))
-(def ^:private fs (require "fs"))
+(def ^:private path (js/require "path"))
+(def ^:private fs (js/require "fs"))
 
 (defn join-url [base rel]
   (if (.endsWith base "/")

@@ -14,11 +14,10 @@
 
 (ns biblecli.main.dir
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [cljs.core.async :refer [chan put! <!]]
-            [cljs.nodejs :refer [require]]))
+  (:require [cljs.core.async :refer [chan put! <!]]))
 
-(def ^:private fs (require "fs"))
-(def ^:private path (require "path"))
+(def ^:private fs (js/require "fs"))
+(def ^:private path (js/require "path"))
 
 (defn ^:private readdir [dir]
   (let [chan (chan)

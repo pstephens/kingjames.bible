@@ -18,12 +18,11 @@
     [biblecli.main.html :as h]
     [biblecli.main.utility :as u]
     [cljs.core.async :refer [chan put! <!]]
-    [cljs.nodejs :refer [require]]
     [clojure.string :as s]
     [common.normalizer.core :refer [parse]]))
 
-(def node-fs (require "fs"))
-(def node-path (require "path"))
+(def node-fs (js/require "fs"))
+(def node-path (js/require "path"))
 
 (defn js []
 "
@@ -375,6 +374,20 @@ domready(function() {
     (h/img-button (rel-url ch) img alt {:rel rel})
     (h/img-button "" img alt)))
 
+(defn menu-home []
+  [:li (h/img-button "." "home.svg" "Home")])
+
+(defn menu-arrows [prev-ch next-ch]
+  (list
+    [:li (chapter-url prev-ch "left-arrow.svg" "Previous Chapter" "prev")]
+    [:li (chapter-url next-ch "right-arrow.svg" "Next Chapter", "next")]))
+
+(defn menu-chapter [book-id ch]
+  (list
+    [:li.book (h/text-button "." (book-name book-id))]
+    (if (> (:chap-cnt ch) 1)
+      [:li.chap (h/text-button (str ".#" (book-elem-id book-id)) (:num ch))])))
+
 (defn chapter
   [{book-id :book-id
     verses :verses
@@ -392,17 +405,12 @@ domready(function() {
            :modernizr modernizr-script}
           [:div.content.verses
            (h/menu
-             (h/img-button "." "home.svg" "Home")
-             [:span " "]
-             (chapter-url prev-ch "left-arrow.svg" "Previous Chapter" "prev")
-             [:span " "]
-             (chapter-url next-ch "right-arrow.svg" "Next Chapter", "next")
-             [:br]
-             (h/text-button "." (book-name book-id))
-             (if (> (:chap-cnt ch) 1)
-               (list
-                 [:span " "]
-                 (h/text-button (str ".#" (book-elem-id book-id)) (:num ch)))))
+             [:div.vert
+               [:ul.btncontainer (menu-home) (menu-arrows prev-ch next-ch)]
+               [:ul.btncontainer.bookref (menu-chapter book-id ch)]]
+             [:div.horz
+              [:ul.btncontainer (menu-home)]
+              [:ul.btncontainer (menu-chapter book-id ch) (menu-arrows prev-ch next-ch)]])
            [:h1.chap
             (chapter-name ch)]
            (map-indexed #(verse %1 ch %2) verses)
