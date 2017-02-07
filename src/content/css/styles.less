@@ -20,6 +20,7 @@ a:hover, a:active {
 
 .content {
   background-color: white;
+  font-size: 125%;
 }
 
 .ps {
@@ -69,13 +70,16 @@ a:hover, a:active {
 }
 
 .menu2 {
-  text-align: right;
   white-space: nowrap;
   background-color: #FFFFFF;
   position: absolute;
 
   div.horz {
     display: none;
+  }
+
+  li.book a {
+    padding: 2px 6px;
   }
 }
 
@@ -94,7 +98,6 @@ ul.btncontainer {
       height: 3.7ex;
       line-height: 3.7ex;
       padding: 2px;
-      margin: 2px 0 2px 4px;
       background-color: rgba(0, 0, 0, 0.05);
     }
   }
@@ -160,14 +163,18 @@ ul.chapters {
       border-left: 1px solid #BBB;
       border-bottom: 1px solid #BBB;
       border-top: 1px solid #BBB;
-      padding: 6px 0 6px 6px;
+      padding: 6px 0 6px 4px;
       border-bottom-left-radius: 6px;
       border-top-left-radius: 6px;
 
       div.vert {
-        ul.bookref {
+        ul {
           display: flex;
           justify-content: flex-end;
+
+          li a {
+            margin: 2px 0 2px 4px;
+          }
 
           li.book {
             flex-grow: 1;
@@ -175,7 +182,6 @@ ul.chapters {
 
             a {
               flex-grow: 1;
-              padding: 2px 6px;
             }
           }
         }
@@ -195,6 +201,17 @@ ul.chapters {
 
       div.horz {
         display: block;
+        display: flex;
+        justify-content: flex-end;
+        padding: 2px;
+
+        ul li a {
+          margin: 2px;
+        }
+
+        ul.home {
+          flex-grow: 1;
+        }
       }
 
       div.vert {
@@ -245,7 +262,6 @@ ul.chapters {
   }
 
   .content {
-    font-size: 125%;
     width: 600px;
     margin: 25px auto 15px auto;
     border: 1px solid #BBB;
