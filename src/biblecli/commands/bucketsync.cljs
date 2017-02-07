@@ -103,11 +103,13 @@
   (cond
     ; should increase the max-age after things stabilize
     (or (re-find #"\.html$" key) (re-find #"^[^.]+$" key)) (object-props "text/html;charset=utf-8" 600)
-    (re-find #"\.css$" key) (object-props "text/css;charset=utf-8" 600)
+    (re-find #"\.(css|less)$" key) (object-props "text/css;charset=utf-8" 600)
     (re-find #"\.js$" key) (object-props "text/javascript" 600)
     (re-find #"\.png" key) (object-props "image/png" 600)
     (re-find #"\.txt$" key) (object-props "text/plain" 600)
     (re-find #"\.xml$" key) (object-props "application/xml" 600)
+    (re-find #"\.map$" key) (object-props "application/json" 600)
+    (re-find #"\.svg$" key) (object-props "image/svg+xml" 600)
     :else nil))
 
 (defn calc-md5-digest [buffer]
