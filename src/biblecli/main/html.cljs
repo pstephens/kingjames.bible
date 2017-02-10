@@ -35,7 +35,9 @@ ga('send', 'pageview');")
              (put! ch [nil res]))
         opts #js {:minify true
                   :options #js ["setClasses"]
-                  :feature-detects #js ["test/svg/asimg"]}]
+                  :feature-detects #js
+                      ["test/svg/asimg"
+                       "test/css/flexbox"]}]
     (.build m opts cb)
     ch))
 

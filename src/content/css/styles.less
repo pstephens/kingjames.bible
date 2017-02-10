@@ -26,9 +26,9 @@ body {
     margin: 25px auto 15px auto;
     border: 1px solid #BBB;
     padding: @content-margin;
-    -webkit-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
-    -moz-box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
-    box-shadow: 0px 0px 23px 3px rgba(135,135,135,0.77);
+    -webkit-box-shadow: 0 0 23px 3px rgba(135,135,135,0.77);
+    -moz-box-shadow: 0 0 23px 3px rgba(135,135,135,0.77);
+    box-shadow: 0 0 23px 3px rgba(135,135,135,0.77);
   }
 }
 
@@ -152,7 +152,7 @@ ul.btncontainer {
   }
 }
 
-/* Image Buttons */
+/* IMAGE AND TEXT BUTTONS */
 .ibtn {
   padding: 2px;
   width: 3.7ex;
@@ -174,6 +174,24 @@ ul.btncontainer {
 .tbtn {
   min-width: 3.7ex;
 }
+
+html.flexbox {
+  .ibtn, .tbtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    > img {
+      vertical-align: inherit;
+    }
+
+    > span {
+      display: none;
+    }
+  }
+}
+
+
 
 /* TODO: This will go away soon */
 .about {
@@ -214,32 +232,33 @@ ul.btncontainer {
     position: fixed;
 
     .menu2 {
-      right: @content-margin;
-      border-left: 1px solid #BBB;
-      border-bottom: 1px solid #BBB;
-      border-top: 1px solid #BBB;
+      right: @content-margin - 1px;
+      border: 1px solid #BBB;
+      border-right-color: white;
       padding: 6px 0 6px 4px;
       border-bottom-left-radius: 6px;
       border-top-left-radius: 6px;
 
       div.vert {
         ul {
-          display: flex;
-          justify-content: flex-end;
-
           li a {
             margin: 2px 0 2px 4px;
           }
-
-          li.book {
-            flex-grow: 1;
-            display: flex;
-
-            a {
-              flex-grow: 1;
-            }
-          }
         }
+      }
+    }
+  }
+
+  html.flexbox .menu .menu2 div.vert ul {
+    display: flex;
+    justify-content: flex-end;
+
+    li.book {
+      flex-grow: 1;
+      display: flex;
+
+      a {
+        flex-grow: 1;
       }
     }
   }
@@ -256,22 +275,25 @@ ul.btncontainer {
 
       div.horz {
         display: block;
-        display: flex;
-        justify-content: flex-end;
         padding: 2px;
 
         ul li a {
           margin: 2px;
-        }
-
-        ul.home {
-          flex-grow: 1;
         }
       }
 
       div.vert {
         display: none;
       }
+    }
+  }
+
+  html.flexbox .menu .menu2 div.horz {
+    display: flex;
+    justify-content: flex-end;
+
+    ul.home {
+      flex-grow: 1;
     }
   }
 }

@@ -413,7 +413,8 @@ domready(function() {
                [:ul.btncontainer.bookref (menu-chapter book-id ch)]]
              [:div.horz
               [:ul.btncontainer.home (menu-home)]
-              [:ul.btncontainer (menu-chapter book-id ch) (menu-arrows prev-ch next-ch)]])
+              [:ul.btncontainer (menu-chapter book-id ch)]
+              [:ul.btncontainer (menu-arrows prev-ch next-ch)]])
            [:h1.chap
             (chapter-name ch)]
            (map-indexed #(verse %1 ch %2) verses)

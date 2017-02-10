@@ -9,5 +9,5 @@
     </style>
   </defs>
   <path id="ArrowPoint" class="cls-1" d="M617,227l-10-8,28-38-28-38,10-8,35,46Z" transform="translate(-550 -117)"/>
-  <path id="ArrowStem" class="cls-1" d="M622.105,173L628,181l-5.895,8H576V173h46.105Z" transform="translate(-550 -117)"/>
+  <path id="ArrowStem" class="cls-1" d="M619.9,192H576V170H619.9L628,181h0Z" transform="translate(-550 -117)"/>
 </svg>
