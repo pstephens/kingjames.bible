@@ -43,7 +43,7 @@ var temp_dir = path.join(root_dir, 'out/temp');
 var votd_dir = path.join(build_dir, 'votd');
 var votd_jasmine_dir = path.join(votd_dir, 'jasmine');
 var temp_votd_dir = path.join(temp_dir, 'votd');
-var markdown_dir = path.join(root_dir, 'src/content');
+var content_dir = path.join(root_dir, 'src/content');
 
 function output_to(name, stream) {
     return function output_to(buff) {
@@ -233,12 +233,12 @@ gulp.task('css',
                 compress: false,
                 filename: "styles.less",
                 sourceMap: {
-                    soiurceMapInputFilename: "styles.less",
+                    sourceMapInputFilename: "styles.less",
                     sourceMapOutputFilename: "styles.css",
                     sourceMapFullFilename: "styles.css.map",
                     sourceMapFilename: "styles.css.map",
                     sourceMapBasepath: "",
-                    sourceMapRootPath: ""
+                    sourceMapRootpath: ""
                 }
             }
             return less.render(data, opts);
@@ -275,8 +275,9 @@ gulp.task('build',
                 '--canonical', config.canonical,
                 '--baseurl', config.baseurl,
                 (config.allowrobots ? "--allowrobots" : null),
+                content_dir,
                 build_dir),
-            biblecli_task('markdown', markdown_dir, build_dir),
+            biblecli_task('markdown', content_dir, build_dir),
             'build_votd',
             'copy_svg',
             'copy_png'),

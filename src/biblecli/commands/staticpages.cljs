@@ -16,6 +16,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
     [biblecli.main.html :as h]
+    [biblecli.main.javascript :as j]
     [biblecli.main.utility :as u]
     [cljs.core.async :refer [chan put! <!]]
     [clojure.string :as s]
@@ -23,111 +24,6 @@
 
 (def node-fs (js/require "fs"))
 (def node-path (js/require "path"))
-
-(defn js []
-"
-/*!
- * domready (c) Dustin Diaz 2012 - License MIT
- * https://github.com/ded/domready/blob/v0.3.0/ready.min.js
- */
-!function(e,t){typeof module!=\"undefined\"?module.exports=t():typeof define==\"function\"&&typeof define.amd==\"object\"?define(t):this[e]=t()}(\"domready\",function(e){function p(e){h=1;while(e=t.shift())e()}var t=[],n,r=!1,i=document,s=i.documentElement,o=s.doScroll,u=\"DOMContentLoaded\",a=\"addEventListener\",f=\"onreadystatechange\",l=\"readyState\",c=o?/^loaded|^c/:/^loaded|c/,h=c.test(i[l]);return i[a]&&i[a](u,n=function(){i.removeEventListener(u,n,r),p()},r),o&&i.attachEvent(f,n=function(){/^c/.test(i[l])&&(i.detachEvent(f,n),p())}),e=o?function(n){self!=top?h?n():t.push(n):function(){try{s.doScroll(\"left\")}catch(t){return setTimeout(function(){e(n)},50)}n()}()}:function(e){h?e():t.push(e)}});
-
-(function (document, window) {
-
-document.kj = document.kj || {};
-
-var isOperaMini = Object.prototype.toString.call(window.operamini) === \"[object OperaMini]\"
-var activeId = '_main';
-
-function FindElem(id)
-{
-    return id === null ? null : document.getElementById(id);
-}
-
-function SetActiveElem(id) {
-  function Activate(id, active) {
-    var el = document.getElementById(id);
-    if(el) {
-      var t = el.className;
-      t = t.replace('active', '').trim();
-      if(active) {
-        t = (t + ' active').trim();
-      }
-      if(el.className !== t) {
-        el.className = t;
-      }
-    }
-    return !!el;
-  }
-
-  var ret;
-  if(id !== activeId) {
-    Activate(activeId, false);
-    ret = Activate(id, true);
-    activeId = id;
-  }
-  else {
-    ret = true;
-  }
-  return ret;
-}
-
-function SetActive()
-{
-    var raw = window.location.hash.substr(1);
-    var id = '_' + raw;
-    if(!SetActiveElem(id)) {
-      SetActiveElem('_main');
-    }
-}
-
-function ScrollToY(y)
-{
-  if(!isOperaMini && window.scrollY !== y) {
-    window.scrollTo(window.scrollX, y);
-  }
-}
-
-function CenterElem(el)
-{
-    if(el) {
-        var elRect = el.getBoundingClientRect(),
-            elHeight = elRect.bottom - elRect.top,
-            docEl = document.documentElement,
-            newY = window.scrollY +
-                   elRect.top -
-                   (docEl.clientHeight - elHeight) / 2;
-        ScrollToY(newY);
-    }
-}
-
-function DoScroll()
-{
-  window.setTimeout(
-    function() {
-      if(document.kj.centeractive) {
-        CenterElem(FindElem(activeId));
-      }
-      if(document.kj.scrolltop) {
-        ScrollToY(0);
-      }
-    }, 0);
-}
-
-SetActive();
-DoScroll();
-
-window.addEventListener('hashchange', function(e) {
-  SetActive();
-  DoScroll();
-});
-
-domready(function() {
-  SetActive();
-  DoScroll();
-});
-
-})(document, window);")
 
 (defn robots [baseurl allowrobots]
   (if allowrobots
@@ -250,13 +146,13 @@ domready(function() {
              (map (fn [ch]
                   [:li [:a {:href (rel-url (:id b) (:num ch) chapcount)} (:num ch)]])))]]))
 
-(defn toc [m baseurl canonical modernizr-script]
+(defn toc [m baseurl canonical default-script]
   (h/html {:hilighter {:scrolltop true}
            :title nil
            :desc "Table of Contents"
            :canonical canonical
            :relurl ""
-           :modernizr modernizr-script}
+           :default-script default-script}
           [:div.content.toc
            [:h1 "The King James Bible"]
 
@@ -373,17 +269,18 @@ domready(function() {
       (tokens-to-markup tokens)]))
 
 (defn chapter-url [ch img alt rel]
-  (if ch
-    (h/img-button (rel-url ch) img alt {:rel rel})
-    (h/img-button "" img alt)))
+  (let [data-png (s/replace img ".svg" ".png")]
+    (if ch
+      (h/img-button (rel-url ch) img alt {:rel rel :data-png data-png})
+      (h/img-button "" img alt {:data-png data-png}))))
 
 (defn menu-home []
-  [:li (h/img-button "." "home.svg" "Home")])
+  [:li (h/img-button "." "home.svg" "Home" {:data-png "home.png"})])
 
 (defn menu-arrows [prev-ch next-ch]
   (list
     [:li (chapter-url prev-ch "left-arrow.svg" "Previous Chapter" "prev")]
-    [:li (chapter-url next-ch "right-arrow.svg" "Next Chapter", "next")]))
+    [:li (chapter-url next-ch "right-arrow.svg" "Next Chapter" "next")]))
 
 (defn menu-chapter [book-id ch]
   (list
@@ -399,13 +296,13 @@ domready(function() {
    next-ch
    baseurl
    canonical
-   modernizr-script]
+   default-script]
   (h/html {:hilighter {:centeractive true}
            :title (chapter-name ch)
            :desc (chapter-name ch)
            :canonical canonical
            :relurl (rel-url ch)
-           :modernizr modernizr-script}
+           :default-script default-script}
           [:div.content.verses
            (h/menu
              [:div.vert
@@ -439,37 +336,39 @@ domready(function() {
    --canonical <url>      The canonical url. Defaults to https://kingjames.bible.
    --baseurl <url>        The base url. Defaults to https://beta.kingjames.bible.
    --allowrobots          Allow robots via robots.txt. By default robots are disallowed.
+   <content-dir>          The path to the content directory.
    <output-path>          Output directory to place the resource files."
    :async true
    :cmdline-opts {:boolean ["allowrobots"]
-                  :string ["parser" "input" "baseurl" "canonical"]
+                  :string ["parser" "input" "contentdir" "baseurl" "canonical"]
                   :default {:parser nil
                             :input nil
+                            :contentdir nil
                             :baseurl "https://beta.kingjames.bible"
                             :canonical "https://kingjames.bible"}}}
-  [{parser :parser input :input output-dir :_ baseurl :baseurl canonical :canonical allowrobots :allowrobots}]
+  [{[content-dir output-dir] :_ parser :parser input :input baseurl :baseurl canonical :canonical allowrobots :allowrobots}]
   (go
-    (if (not= (count output-dir) 1)
-      (throw "Must have exactly one <output-path> parameter."))
     (let [parser (or parser (u/default-parser))
           input  (or input (u/default-parser-input))
           m (parse parser input)
           all-chapters (chapters m)
-          output-dir (first output-dir)
-          [_ modernizr] (<! (h/modernizr-script))]
-      (write! output-dir "hiliter.js" (js))
-      (write! output-dir "robots.txt" (robots baseurl allowrobots))
-      (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical modernizr))
-      (dorun
-        (map-indexed
-          #(write!
-            output-dir
-            (rel-url %2)
-            (chapter
-              %2
-              (prev-chapter all-chapters %1)
-              (next-chapter all-chapters %1)
-              baseurl
-              canonical
-              modernizr))
-          all-chapters)))))
+          [err default-script] (<! (j/default-scripts content-dir))]
+      (if err
+        [err nil]
+        (do
+          (write! output-dir "robots.txt" (robots baseurl allowrobots))
+          (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical default-script))
+          (dorun
+            (map-indexed
+              #(write!
+                output-dir
+                (rel-url %2)
+                (chapter
+                  %2
+                  (prev-chapter all-chapters %1)
+                  (next-chapter all-chapters %1)
+                  baseurl
+                  canonical
+                  default-script))
+              all-chapters))
+          [nil nil])))))

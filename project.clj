@@ -16,7 +16,7 @@
   :npm {:dependencies [[aws-sdk "2.9.0"]
                        [del "2.2.2"]
                        [gulp "gulpjs/gulp#4.0"]
-                       [gulp-uglify "2.0.1"]
+                       [gulp-uglify "2.1.0"]
                        [jasmine "2.5.3"]
                        [less "2.7.2"]
                        [lodash "4.17.4"]
@@ -25,7 +25,8 @@
                        [mkdirp "0.5.1"]
                        [modernizr "3.3.1"]
                        [phantomjs2 "2.2.0"]
-                       [source-map-support "0.4.11"]]}
+                       [source-map-support "0.4.11"]
+                       [uglify-js "2.8.10"]]}
 
   :jvm-opts ^:replace ["-Xmx2g" "-server"]
   :plugins [[lein-npm "0.6.2"]

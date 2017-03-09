@@ -16,9 +16,9 @@ Note to self :-)
     * Use the default 1x size
     * Set the format to PNG
     * Transparency: Yes
-    * Smaller File: No (this appears to produce a larger file, probably because of the color table)
-    * Set the scale to 56.25%, resample to Bicubic Auto
-    * Canvas width, height to 72px
+    * Smaller File: Yes
+    * Set the scale to 23.44%, resample to Bicubic Auto
+    * Canvas width, height to 30px
     * No metadata
     * Convert to sRGB: Yes
     * Embed color profile: No (we're doing B+W after all)

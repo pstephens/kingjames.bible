@@ -22,25 +22,6 @@
     (str base rel)
     (str base "/" rel)))
 
-(defn google-analytics-script []
-  "//Google Analytics
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-ga('create', 'UA-75078401-1', 'auto');
-ga('send', 'pageview');")
-
-(defn modernizr-script []
-  (let [m (js/require "modernizr")
-        ch (chan)
-        cb (fn [res]
-             (put! ch [nil res]))
-        opts #js {:minify true
-                  :options #js ["setClasses"]
-                  :feature-detects #js
-                      ["test/svg/asimg"
-                       "test/css/flexbox"]}]
-    (.build m opts cb)
-    ch))
-
 (defn html [{title     :title
              desc      :desc
              canonical :canonical
@@ -59,13 +40,11 @@ ga('send', 'pageview');")
         [:link {:rel "canonical" :href (join-url canonical relurl)}]]
        [:body
         inner
-        [:script {:type "text/javascript" :src "hiliter.js"}]
-        [:script {:type "text/javascript"} (google-analytics-script)]
-        (if-let [modernizr (:modernizr opts)]
-          [:script {:type "text/javascript"} modernizr])
-        (if-let [hilighter (:hilighter opts)]
+        (let [default-script (:default-script opts)]
           [:script {:type "text/javascript"}
-           (str "document.kj=" (.stringify js/JSON (clj->js hilighter)))])]])))
+           default-script
+           (map (fn[[k v]] (str "window.kj." (name k) "=" (.stringify js/JSON (clj->js v)) ";")) (:hilighter opts))
+           "window.kj.bootstrap();"])]])))
 
 (defn menu [& inner]
  [:div.menu
@@ -78,7 +57,9 @@ ga('send', 'pageview');")
 (defn img-button
   ([url src alt] (img-button url src alt {}))
   ([url src alt attributes]
-  [:a.ibtn (merge attributes {:href url})
-   [:img {:src src
-          :alt alt}]
+  [:a.ibtn (dissoc (merge attributes {:href url}) :data-png)
+   [:img (merge
+           {:src src
+            :alt alt}
+           (select-keys attributes [:data-png]))]
    [:span]]))

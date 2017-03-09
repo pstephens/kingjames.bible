@@ -16,6 +16,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
     [biblecli.main.html :as h]
+    [biblecli.main.javascript :as j]
     [cljs.core.async :refer [chan put! <!]]
     [clojure.string :as string]))
 
@@ -86,29 +87,31 @@
 
 (defn markdown
   {:summary      "Convert markdown files to templated HTML."
-   :doc          "usage: biblecli markdown [-canonical <url>] [-baseurl <url>] <input-path> <output-path>
+   :doc          "usage: biblecli markdown [-canonical <url>] [-baseurl <url>] <content-dir> <output-dir>
    --canonical <url>      The canonical url. Defaults to https://kingjames.bible.
    --baseurl <url>        The base url. Defaults to https://beta.kingjames.bible.
-   <input-path>           Input directory to find markdown files. Files much match the pattern *.md.
-   <output-path>          Output directory to place the resource files."
+   <content-dir>          Input directory for content. Files must match the pattern <contentdir>/*.md.
+   <output-dir>           Output directory to place the HTML resource files."
    :async true
-   :cmdline-opts {:string  ["input" "output" "baseurl" "canonical"]
+   :cmdline-opts {:string  ["baseurl" "canonical"]
                   :default {:baseurl   "https://beta.kingjames.bible"
                             :canonical "https://kingjames.bible"}}}
-  [{[input-dir output-dir] :_ baseurl :baseurl canonical :canonical}]
+  [{[content-dir output-dir] :_ baseurl :baseurl canonical :canonical}]
   (go
-    (let [[err all-files] (<! (readdir input-dir))
-          [_ modernizr] (<! (h/modernizr-script))
+    (let [ch1 (readdir content-dir)
+          ch2 (j/default-scripts content-dir)
+          [err1 all-files] (<! ch1)
+          [err2 default-script] (<! ch2)
           opts {:baseurl baseurl
                 :canonical canonical
-                :modernizr modernizr}]
-      (if err
+                :default-script default-script}]
+      (if-let [err (or err1 err2)]
         [err nil]
         (let [tasks (->>
                       all-files
                       (filter #(re-find #"\.(md)|(markdown)$" %))
                       (map #(markdown-to-html
-                             (.join path input-dir %)
+                             (.join path content-dir %)
                              output-dir
                              opts))
                       (into ()))]
