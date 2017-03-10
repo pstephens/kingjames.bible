@@ -86,7 +86,7 @@
 
     function kj_svg_polyfill()
     {
-        if(!$win.Modernizr.svgasimage) {
+        if(!$win.Modernizr.svgasimg) {
             var imgs = $doc.getElementsByTagName(_img),
                 img,
                 i;
