@@ -50,8 +50,9 @@ ga('send', 'pageview');")
              [nil acc])))
 
 (defn do-minify [scripts]
-  (let [opts #js {:warnings true
-                  :fromString true}
+  (let [opts #js {:warnings false
+                  :fromString true
+                  :compress #js {}}
         strs (clj->js scripts)
         result (js->clj (.minify uglify strs opts) :keywordize-keys true)]
     (:code result)))
