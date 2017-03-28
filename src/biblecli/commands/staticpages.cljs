@@ -330,17 +330,17 @@
 
 (defn static
   {:summary "Generate static HTML, CSS, JavaScript, and other resources for the books of the bible."
-   :doc "usage: biblecli static [--parser <parser>] [--input <input-path>] [-canonical <url>] [-baseurl <url>] <output-path>
+   :doc "usage: biblecli static [--parser <parser>] [--input <input-path>] [-canonical <url>] [-baseurl <url>] <content-dir> <output-dir>
    --parser <parser>      Parser. Defaults to '{{default-parser}}'.
    --input <input-path>   Input path. Defaults to '{{default-parser-input}}'.
    --canonical <url>      The canonical url. Defaults to https://kingjames.bible.
    --baseurl <url>        The base url. Defaults to https://beta.kingjames.bible.
    --allowrobots          Allow robots via robots.txt. By default robots are disallowed.
    <content-dir>          The path to the content directory.
-   <output-path>          Output directory to place the resource files."
+   <output-dir>           Output directory to place the resource files."
    :async true
    :cmdline-opts {:boolean ["allowrobots"]
-                  :string ["parser" "input" "contentdir" "baseurl" "canonical"]
+                  :string ["parser" "input" "baseurl" "canonical"]
                   :default {:parser nil
                             :input nil
                             :contentdir nil

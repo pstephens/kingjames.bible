@@ -18,6 +18,7 @@
     [cljs.core.async :refer [<!]]
     [cljs.nodejs :refer [process enable-util-print!]]
     [biblecli.commands.bucketsync]
+    [biblecli.commands.javascript]
     [biblecli.commands.markdown]
     [biblecli.commands.normalize]
     [biblecli.commands.prepare]
@@ -75,6 +76,7 @@
 (def commands
   {"bucketsync"    #'biblecli.commands.bucketsync/bucketsync
    "help"          #'printhelp
+   "javascript"    #'biblecli.commands.javascript/javascript
    "markdown"      #'biblecli.commands.markdown/markdown
    "normalize"     #'biblecli.commands.normalize/normalize
    "prepare"       #'biblecli.commands.prepare/prepare
