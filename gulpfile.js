@@ -270,6 +270,8 @@ gulp.task('sitemap',
         '--baseurl', config.baseurl,
         build_dir));
 
+gulp.task('copy_kj_tests', copy_task('src/content/test/**', test_dir));
+
 gulp.task('build',
     gulp.series(
         'clean',
@@ -281,7 +283,8 @@ gulp.task('build',
             'build_votd',
             'copy_svg',
             'copy_png',
-            'copy_jasmine'),
+            'copy_jasmine',
+            'copy_kj_tests'),
         'sitemap'));
 
 gulp.task('bucketsync',
