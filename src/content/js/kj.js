@@ -4,8 +4,9 @@
         _img = 'img',
         _hashchange = 'hashchange',
         kj = $win.kj = $win.kj || {},
-        isOperaMini = Object.prototype.toString.call($win.operamini) === "[object OperaMini]",
         activeId = '_main';
+
+    kj.isOperaMini = Object.prototype.toString.call($win.operamini) === "[object OperaMini]";
 
     function findElem(id)
     {
@@ -42,18 +43,23 @@
         return ret;
     }
 
-    function setActive()
+    function setActiveElemOrMain(id)
     {
-        var raw = $win.location.hash.substr(1),
-            id = '_' + raw;
         if(!setActiveElem(id)) {
             setActiveElem('_main');
         }
     }
 
+    function setActive()
+    {
+        var raw = $win.location.hash.substr(1),
+            id = '_' + raw;
+        setActiveElemOrMain(id);
+    }
+
     function scrollToY(y)
     {
-        if(!isOperaMini && $win.scrollY !== y) {
+        if(!kj.isOperaMini && $win.scrollY !== y) {
             $win.scrollTo($win.scrollX, y);
         }
     }
@@ -84,37 +90,43 @@
             }, 0);
     }
 
-    function kj_svg_polyfill()
+    function svg_polyfill()
     {
-        if(!$win.Modernizr.svgasimg) {
-            var imgs = $doc.getElementsByTagName(_img),
-                img,
-                i;
-            for(i = 0; i < imgs.length; i++) {
-                img = imgs[i];
-                if(img.hasAttribute(_data_png))
-                    img.src = img.getAttribute(_data_png);
+        var imgs = $doc.getElementsByTagName(_img),
+            img,
+            i,
+            png;
+        for(i = 0; i < imgs.length; i++) {
+            img = imgs[i];
+            if(img.hasAttribute(_data_png)) {
+                png = img.getAttribute(_data_png);
+                if(img.src !== png)
+                    img.src = png;
             }
         }
     }
 
-    function bootstrap1() {
+    function init() {
         setActive();
         doScroll();
     }
 
-    function kj_bootstrap()
+    function bootstrap()
     {
-        bootstrap1();
-        kj_svg_polyfill();
+        init();
+        if($win.Modernizr.svgasimg) {
+            svg_polyfill();
+        }
 
-        $win.addEventListener(_hashchange, bootstrap1);
+        $win.addEventListener(_hashchange, init);
 
-        $win.domready(bootstrap1);
+        $win.domready(init);
     }
 
     // exports (some are for testing)
-    kj.bootstrap = kj_bootstrap;
-    kj.svg_polyfill = kj_svg_polyfill;
+    kj.bootstrap = bootstrap;
+    kj.svg_polyfill = svg_polyfill;
+    kj.setActiveElem = setActiveElem;
+    kj.setActiveElemOrMain = setActiveElemOrMain;
 
 })(document, window);

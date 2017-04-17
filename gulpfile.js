@@ -265,6 +265,9 @@ gulp.task('static_html',
 gulp.task('markdown_html',
     biblecli_task('markdown', content_dir, build_dir));
 
+gulp.task('static_javascript',
+    biblecli_task('javascript', content_dir, build_dir));
+
 gulp.task('sitemap',
     biblecli_task('sitemap',
         '--baseurl', config.baseurl,
@@ -283,9 +286,18 @@ gulp.task('build',
             'build_votd',
             'copy_svg',
             'copy_png',
+            'static_javascript',
             'copy_jasmine',
             'copy_kj_tests'),
         'sitemap'));
+
+gulp.task('build_browser_test',
+    gulp.series(
+        'make_build_dir',
+        gulp.parallel(
+            'copy_kj_tests',
+            'copy_jasmine',
+            'static_javascript')));
 
 gulp.task('bucketsync',
     biblecli_task('bucketsync',
