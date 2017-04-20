@@ -13,7 +13,7 @@
 ;;;;   limitations under the License.
 
 (ns biblecli.commands.javascript
-  (:require-macros [cljs.core.async.macros :refer [go]])
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require
     [biblecli.main.javascript :as j]
     [cljs.core.async :refer [chan put! <!]]))
@@ -30,6 +30,15 @@
     (.writeFile node-fs filePath buff cb)
     ch))
 
+(defn wait-for [tasks]
+  (go-loop [tasks tasks]
+           (if-let [task (first tasks)]
+             (let [[err _] (<! task)]
+               (if err
+                 [err nil]
+                 (recur (rest tasks))))
+             [nil true])))
+
 (defn javascript
   {:summary "Generate static JavaScript."
    :doc "usage: biblecli javascript <content-dir> <output-dir>
@@ -39,7 +48,12 @@
    :cmdline-opts {}}
 [{[content-dir output-dir] :_}]
   (go
-    (let [[err default-script] (<! (j/default-scripts content-dir))]
+    (let [[err {:keys [original minified sourcemap]}] (<! (j/default-scripts content-dir))]
       (if err
         [err nil]
-        (<! (write! output-dir "script.js" default-script))))))
+        (<! (wait-for
+              (list
+                (write! output-dir "script.js" original)
+                (write! output-dir "script.min.js" minified)
+                (write! output-dir "script.min.js.map" sourcemap)
+                )))))))

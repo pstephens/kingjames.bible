@@ -1,5 +1,5 @@
 /* (c) 2017 Peter Stephens - Apache 2 License */
-(function ($doc, $win) {
+;(function ($doc, $win) {
     var _data_png = 'data-png',
         _img = 'img',
         _hashchange = 'hashchange',

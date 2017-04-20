@@ -14,7 +14,8 @@
 
 (ns biblecli.main.javascript
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
-  (:require [cljs.core.async :refer [chan put! <!]]))
+  (:require [cljs.core.async :refer [chan put! <!]]
+            [clojure.string :as s]))
 
 (def node-fs (js/require "fs"))
 (def node-path (js/require "path"))
@@ -52,17 +53,24 @@ ga('send', 'pageview');")
 (defn do-minify [scripts]
   (let [opts #js {:warnings false
                   :fromString true
-                  :compress #js {}}
+                  :compress #js {}
+                  :outFileName "script.min.js"
+                  :outSourceMap "script.min.js.map"}
         strs (clj->js scripts)
         result (js->clj (.minify uglify strs opts) :keywordize-keys true)]
-    (:code result)))
+    result))
 
 (defn minify-scripts [channels]
   (go
     (let [[err scripts] (<! (collect-scripts channels))]
       (if err
         [err nil]
-        [nil (do-minify scripts)]))))
+        (let [combined (s/join "\n" scripts)
+              minified (do-minify {"script.js" combined })]
+          [nil
+           {:original combined
+            :minified (:code minified)
+            :sourcemap (:map minified)}])))))
 
 (defn load-script [path]
   (let [ch (chan)

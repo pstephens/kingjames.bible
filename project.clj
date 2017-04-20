@@ -26,7 +26,7 @@
                        [modernizr "3.3.1"]
                        [phantomjs2 "2.2.0"]
                        [source-map-support "0.4.11"]
-                       [uglify-js "2.8.10"]]}
+                       [uglify-js "2.8.22"]]}
 
   :jvm-opts ^:replace ["-Xmx2g" "-server"]
   :plugins [[lein-npm "0.6.2"]
