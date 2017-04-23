@@ -16,7 +16,6 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
     [biblecli.main.html :as h]
-    [biblecli.main.javascript :as j]
     [biblecli.main.utility :as u]
     [cljs.core.async :refer [chan put! <!]]
     [clojure.string :as s]
@@ -328,6 +327,13 @@
         buff (js/Buffer. content "utf8")]
     (.writeFileSync node-fs filepath buff)))
 
+(defn readfile [input-path]
+  (let [chan (chan)
+        cb (fn [err data]
+             (put! chan [err data]))]
+    (.readFile node-fs input-path "utf8" cb)
+    chan))
+
 (defn static
   {:summary "Generate static HTML, CSS, JavaScript, and other resources for the books of the bible."
    :doc "usage: biblecli static [--parser <parser>] [--input <input-path>] [-canonical <url>] [-baseurl <url>] <content-dir> <output-dir>
@@ -352,23 +358,25 @@
           input  (or input (u/default-parser-input))
           m (parse parser input)
           all-chapters (chapters m)
-          [err default-script] (<! (j/default-scripts content-dir))]
+          [err default-script] (<! (readfile (.join node-path output-dir "script.min.js")))]
       (if err
         [err nil]
         (do
-          (write! output-dir "robots.txt" (robots baseurl allowrobots))
-          (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical default-script))
-          (dorun
-            (map-indexed
-              #(write!
-                output-dir
-                (rel-url %2)
-                (chapter
-                  %2
-                  (prev-chapter all-chapters %1)
-                  (next-chapter all-chapters %1)
-                  baseurl
-                  canonical
-                  default-script))
-              all-chapters))
-          [nil nil])))))
+          (let [default-script (s/replace default-script #"[\s\S]//# sourceMappingURL.*$" "")]
+            (write! output-dir "robots.txt" (robots baseurl allowrobots))
+            (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc m baseurl canonical default-script))
+            (dorun
+              (map-indexed
+                ; might gain some perf by doing async writes
+                #(write!
+                  output-dir
+                  (rel-url %2)
+                  (chapter
+                    %2
+                    (prev-chapter all-chapters %1)
+                    (next-chapter all-chapters %1)
+                    baseurl
+                    canonical
+                    default-script))
+                all-chapters))
+            [nil nil]))))))

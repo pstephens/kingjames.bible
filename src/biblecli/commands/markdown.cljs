@@ -16,7 +16,6 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
     [biblecli.main.html :as h]
-    [biblecli.main.javascript :as j]
     [cljs.core.async :refer [chan put! <!]]
     [clojure.string :as string]))
 
@@ -33,13 +32,6 @@
         cb (fn [err data]
              (put! chan [err data]))]
     (.readdir fs dir cb)
-    chan))
-
-(defn ^:private readfile [input-path]
-  (let [chan (chan)
-        cb (fn [err data]
-             (put! chan [err data]))]
-    (.readFile fs input-path "utf8" cb)
     chan))
 
 (defn ^:private parse-markdown-props [data]
@@ -62,6 +54,13 @@
         cb (fn [err data]
              (put! chan [err data]))]
     (.writeFile fs output-path data "utf8" cb)
+    chan))
+
+(defn ^:private readfile [input-path]
+  (let [chan (chan)
+        cb (fn [err data]
+             (put! chan [err data]))]
+    (.readFile fs input-path "utf8" cb)
     chan))
 
 (defn ^:private markdown-to-html [input-path output-dir opts]
@@ -99,12 +98,12 @@
   [{[content-dir output-dir] :_ baseurl :baseurl canonical :canonical}]
   (go
     (let [ch1 (readdir content-dir)
-          ch2 (j/default-scripts content-dir)
+          ch2 (readfile (.join path output-dir "script.min.js"))
           [err1 all-files] (<! ch1)
           [err2 default-script] (<! ch2)
-          opts {:baseurl baseurl
-                :canonical canonical
-                :default-script default-script}]
+          opts {:baseurl        baseurl
+                :canonical      canonical
+                :default-script (string/replace default-script #"[\s\S]//# sourceMappingURL.*$" "")}]
       (if-let [err (or err1 err2)]
         [err nil]
         (let [tasks (->>

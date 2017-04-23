@@ -281,14 +281,15 @@ gulp.task('build',
         'make_build_dir',
         gulp.parallel(
             'css',
-            'static_html',
-            'markdown_html',
             'build_votd',
             'copy_svg',
             'copy_png',
             'static_javascript',
             'copy_jasmine',
             'copy_kj_tests'),
+        gulp.parallel(
+            'static_html',
+            'markdown_html'),
         'sitemap'));
 
 gulp.task('build_browser_test',

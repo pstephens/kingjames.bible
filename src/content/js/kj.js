@@ -114,7 +114,7 @@
     function bootstrap()
     {
         init();
-        if($win.Modernizr.svgasimg) {
+        if(!$win.Modernizr.svgasimg) {
             svg_polyfill();
         }
 

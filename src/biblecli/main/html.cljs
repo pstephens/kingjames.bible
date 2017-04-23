@@ -41,10 +41,10 @@
        [:body
         inner
         (let [default-script (:default-script opts)]
-          [:script {:type "text/javascript"}
-           default-script
-           (map (fn[[k v]] (str "window.kj." (name k) "=" (.stringify js/JSON (clj->js v)) ";")) (:hilighter opts))
-           "window.kj.bootstrap();"])]])))
+          [:script {:type "text/javascript"} default-script])
+        [:script {:type "text/javascript"}
+          (map (fn[[k v]] (str "window.kj." (name k) "=" (.stringify js/JSON (clj->js v)) ";")) (:hilighter opts))
+            "window.kj.bootstrap();"]]])))
 
 (defn menu [& inner]
  [:div.menu
