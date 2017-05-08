@@ -8,6 +8,6 @@
       }
     </style>
   </defs>
-  <path id="ArrowPoint" class="cls-1" d="M617,227l-15-12,25-34-25-34,15-12,35,46Z" transform="translate(-549.5 -117)"/>
-  <path id="ArrowStem" class="cls-1" d="M616,181L607.9,192H575V170H607.9Z" transform="translate(-549.5 -117)"/>
+  <path id="ArrowPoint" class="cls-1" d="M617,227l-15-12,25-34-25-34,15-12,35,46Z" transform="translate(-551 -117)"/>
+  <path id="ArrowStem" class="cls-1" d="M619,181L610.9,192H578V170H610.9Z" transform="translate(-551 -117)"/>
 </svg>
