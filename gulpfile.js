@@ -199,6 +199,8 @@ gulp.task('copy_svg', copy_task('artwork/*.svg', build_dir));
 
 gulp.task('copy_png', copy_task('artwork/*.png', build_dir));
 
+gulp.task('copy_favicon', copy_task('artwork/favicon.ico', build_dir))
+
 less.logger.addListener({
     info: msg => console.log("less: " + msg),
     warn: msg => console.warn("less: " + msg),
@@ -284,6 +286,7 @@ gulp.task('build',
             'build_votd',
             'copy_svg',
             'copy_png',
+            'copy_favicon',
             'static_javascript',
             'copy_jasmine',
             'copy_kj_tests'),

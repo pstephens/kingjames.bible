@@ -37,7 +37,8 @@
         [:meta {:name "description" :content (str desc " - The King James Bible, the Holy Bible in English")}]
         [:meta {:name "viewport" :content "width=device-width, initial-scale=1"}]
         [:link {:rel "stylesheet" :type "text/css" :href "styles.css"}]
-        [:link {:rel "canonical" :href (join-url canonical relurl)}]]
+        [:link {:rel "canonical" :href (join-url canonical relurl)}]
+        [:link {:rel "shortcut icon" :href "favicon.ico" :type "image/x-icon"}]]
        [:body
         inner
         (let [default-script (:default-script opts)]
