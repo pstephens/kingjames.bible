@@ -127,21 +127,30 @@ gulp.task('bible_resources',
         'bible_resources_dir',
         biblecli_task('prepare', 'out/bible')));
 
-gulp.task('run_node_tests',
-    function spawn_node() {
-        return spawn('node', node_exec_path, ['nodetest.js']).promise
-    });
+gulp.task('run_node_tests', biblecli_task('unittest'));
 
 gulp.task('run_phantom_tests', function server() {
     // launch the web server
     const server = biblecli('serve');
 
+    const stopWebServer = () => {
+        console.log('Stopping the web test server...');
+        server.proc.kill();
+    };
+
+    const success = value => {
+        stopWebServer();
+        return value;
+    };
+
+    const reject = reason => {
+        stopWebServer();
+        return Promise.reject(reason);
+    };
+
     // launch phantom.js
     return spawn('phantom', phantom.path, ['phantomtest.js', 'http://localhost:7490/phantomtest.html']).promise
-        .finally(() => {
-            console.log('Stopping the web test server...');
-            server.proc.kill();
-        });
+        .then(success, reject);
 });
 
 gulp.task('run_tests',

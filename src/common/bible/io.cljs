@@ -12,38 +12,39 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns common.bible.io)
+(ns common.bible.io
+  (:require [common.bible.model :as model]))
 
 (def verse-partition-size 781)
 
 (defn- get-chapter-count-for-books [m]
   (->> m
-    (map :chapters)
+    (map ::model/chapters)
     (map count)
     (vec)))
 
 (defn- get-verse-count-for-chapters [m]
   (->> m
-    (mapcat :chapters)
-    (map :verses)
+    (mapcat ::model/chapters)
+    (map ::model/verses)
     (map count)
     (vec)))
 
 (defn- filtered-chapter-indexes-to-set [m f]
   (->> m
-    (mapcat :chapters)
+    (mapcat ::model/chapters)
     (keep-indexed #(if (f %2) %1))
     (set)))
 
 (defn normalized->persisted-bible [m]
   {:books (get-chapter-count-for-books m)
    :chapters (get-verse-count-for-chapters m)
-   :subtitle (filtered-chapter-indexes-to-set m :subtitle)
-   :postscript (filtered-chapter-indexes-to-set m :postscript)
+   :subtitle (filtered-chapter-indexes-to-set m ::model/subtitle)
+   :postscript (filtered-chapter-indexes-to-set m ::model/postscript)
    :partition-size verse-partition-size})
 
 (defn normalized->persisted-verses [m]
   (->> m
-    (mapcat :chapters)
-    (mapcat :verses)
+    (mapcat ::model/chapters)
+    (mapcat ::model/verses)
     (vec)))

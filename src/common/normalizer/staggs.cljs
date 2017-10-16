@@ -15,6 +15,7 @@
 (ns common.normalizer.staggs
   (:require [clojure.string :as string]
             [common.bible.core]
+            [common.bible.model :as model]
             [common.normalizer.filesystem :refer [read-text]]))
 
 (def book-name-map {
@@ -96,37 +97,38 @@
 (defn transform-verse [s]
   (let [[_ book ch verse content] (re-matches #"\s+(\w+)\s+(\d+)\:(\d+)\s+(.*)" s)
         [_ subtitle cont postscript] (re-matches #"(?:^\s*<<(.*)>>)?([^<]*)(?:<<\[(.*)\]>>\s*$)?" (str content))]
-    {:bookId (book-name-map book)
-     :chapterNum (int ch)
-     :content (cleanup-verse-content cont)
-     :subtitle subtitle
-     :postscript postscript}))
+    {::model/bookId (book-name-map book)
+     ::model/chapterNum (int ch)
+     ::model/verse (cleanup-verse-content cont)
+     ::model/subtitle subtitle
+     ::model/postscript postscript}))
 
 (defn transform-chapter [verses]
   (let [v1 (first verses)
-        subtitle (:subtitle v1)
+        subtitle (::model/subtitle v1)
         vn (last verses)
-        postscript (:postscript vn)]
-    {:num (:chapterNum v1)
-     :subtitle (some? subtitle)
-     :postscript (some? postscript)
-     :verses
+        postscript (::model/postscript vn)]
+    {::model/chapterNum (::model/chapterNum v1)
+     ::model/bookId (::model/bookId v1)
+     ::model/subtitle (some? subtitle)
+     ::model/postscript (some? postscript)
+     ::model/verses
        (->>
          (flatten [subtitle
-                   (map :content verses)
+                   (map ::model/verse verses)
                    postscript])
          (filter some?)
          (vec))}))
 
 (defn transform-book [verses]
   (let [v1 (first verses)
-        book-data (common.bible.core/book-data (v1 :bookId))]
-    {:id (book-data :id)
-     :num (inc (book-data :index))
-     :chapters
+        book-data (common.bible.core/book-data (v1 ::model/bookId))]
+    {::model/bookId (book-data ::model/bookId)
+     ::model/bookNum (inc (book-data :index))
+     ::model/chapters
        (->>
          verses
-         (partition-by :chapterNum)
+         (partition-by ::model/chapterNum)
          (map transform-chapter)
          (vec))}))
 
@@ -135,8 +137,8 @@
     str
     (string/split-lines)
     (map transform-verse)
-    (filter :bookId)
-    (partition-by :bookId)
+    (filter ::model/bookId)
+    (partition-by ::model/bookId)
     (map transform-book)
     (vec)))
 

@@ -16,6 +16,7 @@
   (:require-macros [hiccups.core :refer [html]])
   (:require
     [clojure.string :as s]
+    [common.bible.model :as model]
     [common.normalizer.core :refer [parse]]
     [hiccups.runtime]
     [biblecli.main.utility :as u]))
@@ -112,12 +113,12 @@
   (let [[book-idx0 chapter-idx0 _] (nth verses 0)
         book-str (book-names book-idx0)
         book-chapter-str (str book-str " " (inc chapter-idx0))
-        chapter (get-in m [book-idx0 :chapters chapter-idx0])
-        delta (if (:subtitle chapter) 1 0)
+        chapter (get-in m [book-idx0 ::model/chapters chapter-idx0])
+        delta (if (::model/subtitle chapter) 1 0)
         parts (flatten ["[\""
                         book-chapter-str
                         "\""
-                        (map (fn [[_ _ verse-idx]] (str ",\"" (inc verse-idx) " " (get-in chapter [:verses (+ verse-idx delta)]) "\"")) verses)
+                        (map (fn [[_ _ verse-idx]] (str ",\"" (inc verse-idx) " " (get-in chapter [::model/verses (+ verse-idx delta)]) "\"")) verses)
                         "]"])]
     (apply str parts)))
 

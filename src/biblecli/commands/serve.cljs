@@ -27,7 +27,7 @@
    :doc "usage: biblecli serve [--port <port>] [--biblepath <path>] [--respath <path>]
    --port <port>        Web server port. Defaults to 7490.
    --biblepath <path>   Path to pre-computed bible resource files. Defaults to <root>/out/bible. See the 'prepare' command.
-   --respath <path>     Path to compiled javascript resources. Defaults to <root>/out/dbg."
+   --respath <path>     Path to compiled javascript resources. Defaults to <root>/out/dbg-web."
    :cmdline-opts {:string ["port" "biblepath" "respath"]
                   :default {:port "7490"
                             :biblepath nil
@@ -36,7 +36,7 @@
   (let [root-path (get-root-path)
         rel #(.join node-path root-path %)
         bible-dir (or biblepath (rel "out/bible"))
-        res-dir (or respath (rel "out/dbg"))
+        res-dir (or respath (rel "out/dbg-web"))
         bible-meta-data (bible-res/read-bible-meta-data bible-dir)
         port (js/parseInt port)]
     (server/listen

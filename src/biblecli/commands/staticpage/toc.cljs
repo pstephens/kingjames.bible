@@ -13,29 +13,30 @@
 ;;;;   limitations under the License.
 
 (ns biblecli.commands.staticpage.toc
-  (:require [biblecli.main.html :as h]
-            [biblecli.commands.staticpage.common :as f]))
+  (:require [biblecli.commands.staticpage.common :as f]
+            [biblecli.main.html :as h]
+            [common.bible.model :as model]))
 
-(defn toc-book [b]
-  (let [chapters (:chapters b)
+(defn toc-book [book]
+  (let [chapters (::model/chapters book)
         chapcount (count chapters)
-        id (:id b)
-        bookid (f/book-elem-id id)]
-    [:li [:a {:href (if (> chapcount 1) (str "#" bookid) bookid)} (f/book-name-nbsp id)]]))
+        bookId (::model/bookId book)
+        bookElemId (f/book-elem-id bookId)]
+    [:li [:a {:href (if (> chapcount 1) (str "#" bookElemId) bookElemId)} (f/book-name-nbsp bookId)]]))
 
-(defn toc-book-details [b]
-  (let [chapters (:chapters b)
+(defn toc-book-details [book]
+  (let [chapters (::model/chapters book)
         chapcount (count chapters)
-        id (:id b)
-        bookid (f/book-elem-id id)]
-    [:div.book {:id (str "_" bookid)}
+        bookId (::model/bookId book)
+        bookElemId (f/book-elem-id bookId)]
+    [:div.book {:id (str "_" bookElemId)}
      [:div.back
-      [:h2 (f/book-name-nbsp id)]
+      [:h2 (f/book-name-nbsp bookId)]
       [:a {:href "."} "Table of Contents"]]
      [:ul.chapters.btncontainer
       (->> chapters
            (map (fn [ch]
-                  [:li [:a {:href (f/rel-url (:id b) (:num ch) chapcount)} (:num ch)]])))]]))
+                  [:li [:a {:href (f/chapter-url (::model/bookId book) (::model/chapterNum ch) chapcount)} (::model/chapterNum ch)]])))]]))
 
 (defn page-content [m baseurl canonical default-script]
   (h/html {:hilighter      {:scrolltop true}

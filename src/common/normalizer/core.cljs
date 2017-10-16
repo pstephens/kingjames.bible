@@ -13,11 +13,13 @@
 ;;;;   limitations under the License.
 
 (ns common.normalizer.core
-    (:require
-      [cognitect.transit :as t]
-      [common.normalizer.filesystem :refer [NodeFs write-text]]
-      [common.normalizer.staggs]
-      [common.normalizer.transit]))
+  (:require
+    [cognitect.transit :as t]
+    [common.bible.model]
+    [common.normalizer.filesystem :refer [NodeFs write-text]]
+    [common.normalizer.staggs]
+    [common.normalizer.transit]
+    [cljs.spec.alpha :as spec]))
 
 (def node-fs (NodeFs.))
 
@@ -31,6 +33,10 @@
     (write-text node-fs path s)))
 
 (defn parse [parser path]
+  {:post [(if (spec/valid? :common.bible.model/books %)
+            true
+            (do (spec/explain :common.bible.model/books %)
+                false))]}
   (let [p (parsers (keyword parser))]
     (if p
       (p node-fs path)

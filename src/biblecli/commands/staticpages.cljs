@@ -70,18 +70,25 @@
           (let [default-script (s/replace default-script #"[\s\S]//# sourceMappingURL.*$" "")]
             (write! output-dir "robots.txt" (robots/page-content baseurl allowrobots))
             (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc/page-content m baseurl canonical default-script))
+            ; TODO: implement as part of book chapter index
+            ;(comment (dorun
+            ;  (->> m
+            ;       (map #(write!
+            ;               output-dir
+            ;               )))))
             (dorun
-              (map-indexed
-                ; might gain some perf by doing async writes
-                #(write!
-                  output-dir
-                  (f/rel-url %2)
-                  (chapter/page-content
-                    %2
-                    (chapter/prev-chapter all-chapters %1)
-                    (chapter/next-chapter all-chapters %1)
-                    baseurl
-                    canonical
-                    default-script))
-                all-chapters))
-            [nil nil]))))))
+              (->>
+                all-chapters
+                (map-indexed
+                  ; might gain some perf by doing async writes
+                  #(write!
+                     output-dir
+                     (f/chapter-url %2)
+                     (chapter/page-content
+                       %2
+                       (chapter/prev-chapter all-chapters %1)
+                       (chapter/next-chapter all-chapters %1)
+                       baseurl
+                       canonical
+                       default-script))))
+            [nil nil])))))))

@@ -24,7 +24,7 @@
 
 (def process nodejs/process)
 
-(defn- main []
+(defn runtests []
   (run-tests 'test.node.common.normalizer.coretests
              'test.node.common.bible.coretests
              'test.node.common.bible.iotests))
@@ -37,5 +37,3 @@
     (do
       (println "FAIL")
       (.exit process 1))))
-
-(set! *main-cli-fn* main)

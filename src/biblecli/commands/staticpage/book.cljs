@@ -12,4 +12,24 @@
 ;;;;   See the License for the specific language governing permissions and
 ;;;;   limitations under the License.
 
-(ns biblecli.commands.staticpage.book)
+(ns biblecli.commands.staticpage.book
+  (:require [biblecli.main.html :as h]
+            [biblecli.commands.staticpage.common :as f]
+            [common.bible.model :as model]))
+
+; TODO: implement as part of book chapter index
+(defn page-content [book]
+  (let [chapters (::model/chapters book)
+        chapcount (count chapters)
+        id (::model/bookId book)]
+    (h/html {}
+            [:div.content.toc
+             [:h1 "The King James Bible"]
+             [:div.book
+              [:div.back
+               [:h2 (f/book-name-nbsp id)]
+               [:a {:href "."} "Table of Contents"]]
+              [:ul.chapters.btncontainer
+               (->> chapters
+                    (map (fn [ch]
+                           [:li [:a {:href (f/chapter-url (::model/bookId book) (::model/chapterNum ch) chapcount)} (::model/chapterNum ch)]])))]]])))

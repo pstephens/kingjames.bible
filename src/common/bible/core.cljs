@@ -13,14 +13,15 @@
 ;;;;   limitations under the License.
 
 (ns common.bible.core
-  (:require [clojure.string :as string]))
+  (:require [clojure.string :as string]
+            [common.bible.model :as model]))
 
 (def book-data
   (letfn [(make [keyword index]
-            {:id keyword
+            {::model/bookId keyword
              :name (name keyword)
              :index index})
-           (add [coll item] (assoc coll (:id item) item))]
+           (add [coll item] (assoc coll (::model/bookId item) item))]
     (->>
       (list
         (make :Genesis 0)
@@ -92,46 +93,46 @@
       (reduce add {}))))
 
 (defn get-book-meta
-  ([book-id] (get book-data book-id))
-  ([book-id prop] (prop (get book-data book-id))))
+  ([bookId] (get book-data bookId))
+  ([bookId prop] (prop (get book-data bookId))))
 
 (defn get-book
-  ([m-bible book-id]
-    (let [book-index (get-book-meta book-id :index)]
+  ([m-bible bookId]
+    (let [book-index (get-book-meta bookId :index)]
       (get m-bible book-index)))
-  ([m-bible book-id prop]
-    (let [book (get-book m-bible book-id)]
+  ([m-bible bookId prop]
+    (let [book (get-book m-bible bookId)]
       (prop book))))
 
-(defn get-chapters [m-bible book-id]
-  (get-book m-bible book-id :chapters))
+(defn get-chapters [m-bible bookId]
+  (get-book m-bible bookId ::model/chapters))
 
 (defn get-chapter
-  ([m-bible book-id chapter-num]
-    (let [chapter-index (dec chapter-num)]
-      (get (get-chapters m-bible book-id) chapter-index)))
-  ([m-bible book-id chapter-num prop]
-    (let [chapter (get-chapter m-bible book-id chapter-num)]
+  ([m-bible bookId chapterNum]
+    (let [chapter-index (dec chapterNum)]
+      (get (get-chapters m-bible bookId) chapter-index)))
+  ([m-bible bookId chapterNum prop]
+    (let [chapter (get-chapter m-bible bookId chapterNum)]
       (prop chapter))))
 
-(defn get-verses [m-bible book-id chapter-num]
-  (get-chapter m-bible book-id chapter-num :verses))
+(defn get-verses [m-bible bookId chapterNum]
+  (get-chapter m-bible bookId chapterNum ::model/verses))
 
-(defn get-verse [m-bible book-id chapter-num verse-num]
-  (let [{verses :verses subtitle? :subtitle}
-          (get-chapter m-bible book-id chapter-num)
-        verse-index (if subtitle? verse-num (dec verse-num))]
+(defn get-verse [m-bible bookId chapterNum verseNum]
+  (let [{verses ::model/verses subtitle? ::model/subtitle}
+          (get-chapter m-bible bookId chapterNum)
+        verse-index (if subtitle? verseNum (dec verseNum))]
     (get verses verse-index)))
 
-(defn get-subtitle [m-bible book-id chapter-num]
-  (let [{verses :verses subtitle? :subtitle}
-          (get-chapter m-bible book-id chapter-num)
+(defn get-subtitle [m-bible bookId chapterNum]
+  (let [{verses ::model/verses subtitle? ::model/subtitle}
+          (get-chapter m-bible bookId chapterNum)
         idx (if subtitle? 0 -1)]
     (get verses idx)))
 
-(defn get-postscript [m-bible book-id chapter-num]
-  (let [{verses :verses postscript? :postscript}
-          (get-chapter m-bible book-id chapter-num)
+(defn get-postscript [m-bible bookId chapterNum]
+  (let [{verses ::model/verses postscript? ::model/postscript}
+          (get-chapter m-bible bookId chapterNum)
         idx (if postscript?
               (dec (count verses))
               -1)]

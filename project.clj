@@ -6,31 +6,31 @@
             :distribution :repo}
 
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [org.clojure/clojurescript "1.9.456"
+                 [org.clojure/clojurescript "1.9.946"
                   :exclusion [org.clojure/data.json]]
-                 [org.clojure/core.async "0.2.395"]
+                 [org.clojure/core.async "0.3.443"]
                  [org.clojure/data.json "0.2.6"]
-                 [com.cognitect/transit-cljs "0.8.239"]
+                 [com.cognitect/transit-cljs "0.8.243"]
                  [hiccups "0.3.0"]]
 
-  :npm {:dependencies [[aws-sdk "2.9.0"]
-                       [del "2.2.2"]
+  :npm {:dependencies [[aws-sdk "2.133.0"]
+                       [del "3.0.0"]
                        [gulp "gulpjs/gulp#4.0"]
                        [gulp-uglify "2.1.0"]
-                       [jasmine "2.5.3"]
+                       [jasmine "2.8.0"]
                        [less "2.7.2"]
                        [lodash "4.17.4"]
                        [marked "0.3.6"]
                        [minimist "1.2.0"]
                        [mkdirp "0.5.1"]
-                       [modernizr "3.3.1"]
-                       [phantomjs2 "2.2.0"]
-                       [source-map-support "0.4.11"]
-                       [uglify-js "2.8.22"]]}
+                       [modernizr "3.5.0"]
+                       [phantomjs-prebuilt "2.1.15"]
+                       [source-map-support "0.5.0"]
+                       [uglify-js "3.1.3"]]}
 
   :jvm-opts ^:replace ["-Xmx2g" "-server"]
   :plugins [[lein-npm "0.6.2"]
-            [lein-cljsbuild "1.1.5"]]
+            [lein-cljsbuild "1.1.7"]]
 
   :clean-targets ["out" "release" "target" "node_modules"]
   :target-path "target"
@@ -45,6 +45,14 @@
         :compiler {
           :output-to "out/dbg/debug_refs.js"
           :output-dir "out/dbg"
+          :main  "biblecli.main.core"
           :target :nodejs
+          :optimizations :none
+          :source-map true}}
+       {:id "browser"
+        :source-paths ["src"]
+        :compiler {
+          :output-to "out/dbg-web/debug_refs.js"
+          :output-dir "out/dbg-web"
           :optimizations :none
           :source-map true}}]})

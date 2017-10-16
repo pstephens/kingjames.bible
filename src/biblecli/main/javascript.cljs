@@ -51,11 +51,10 @@ ga('send', 'pageview');")
              [nil acc])))
 
 (defn do-minify [scripts]
-  (let [opts #js {:warnings false
-                  :fromString true
-                  :compress #js {}
-                  :outFileName "script.min.js"
-                  :outSourceMap "script.min.js.map"}
+  (let [opts #js {:warnings     false
+                  :compress     #js {}
+                  :sourceMap    #js {:filename "script.min.js"
+                                     :url "script.min.js.map" }}
         strs (clj->js scripts)
         result (js->clj (.minify uglify strs opts) :keywordize-keys true)]
     result))

@@ -55,5 +55,4 @@
               (list
                 (write! output-dir "script.js" original)
                 (write! output-dir "script.min.js" minified)
-                (write! output-dir "script.min.js.map" sourcemap)
-                )))))))
+                (write! output-dir "script.min.js.map" sourcemap))))))))
