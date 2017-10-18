@@ -85,16 +85,15 @@
 
 (defn book-name [bookId] (get book-names bookId))
 
-(defn book-name-nbsp [book-id]
-  (let [name (book-name book-id)]
+(defn book-name-nbsp [bookId]
+  (let [name (book-name bookId)]
     (s/replace name #"^(I|II|III)\s+" "$1&nbsp;")))
 
-(defn book-elem-id [book-id]
-  (s/replace (book-name book-id) " " "-"))
+(defn book-elem-id [bookId]
+  (s/replace (book-name bookId) " " "-"))
 
-; TODO: implement as part of book chapter index
-;(defn book-url [book]
-;  )
+(defn book-url [bookId]
+  (s/replace (book-name bookId) " " "-"))
 
 (defn chapter-name
   ([bookId chapterNum chapterCount]

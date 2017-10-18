@@ -17,26 +17,8 @@
             [biblecli.main.html :as h]
             [common.bible.model :as model]))
 
-(defn toc-book [book]
-  (let [chapters (::model/chapters book)
-        chapcount (count chapters)
-        bookId (::model/bookId book)
-        bookElemId (f/book-elem-id bookId)]
-    [:li [:a {:href (if (> chapcount 1) (str "#" bookElemId) bookElemId)} (f/book-name-nbsp bookId)]]))
-
-(defn toc-book-details [book]
-  (let [chapters (::model/chapters book)
-        chapcount (count chapters)
-        bookId (::model/bookId book)
-        bookElemId (f/book-elem-id bookId)]
-    [:div.book {:id (str "_" bookElemId)}
-     [:div.back
-      [:h2 (f/book-name-nbsp bookId)]
-      [:a {:href "."} "Table of Contents"]]
-     [:ul.chapters.btncontainer
-      (->> chapters
-           (map (fn [ch]
-                  [:li [:a {:href (f/chapter-url (::model/bookId book) (::model/chapterNum ch) chapcount)} (::model/chapterNum ch)]])))]]))
+(defn toc-book [{bookId ::model/bookId}]
+    [:li [:a {:href (f/book-url bookId)} (f/book-name-nbsp bookId)]])
 
 (defn page-content [m baseurl canonical default-script]
   (h/html {:hilighter      {:scrolltop true}
@@ -64,8 +46,5 @@
              (->> m
                   (drop 39)
                   (map toc-book))]]
-
-           (->> m
-                (map toc-book-details))
 
            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl]]]))

@@ -15,13 +15,15 @@
 (ns biblecli.commands.staticpages
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
-    [biblecli.commands.staticpage.robots :as robots]
+    [biblecli.commands.staticpage.book :as book]
     [biblecli.commands.staticpage.chapter :as chapter]
-    [biblecli.commands.staticpage.toc :as toc]
     [biblecli.commands.staticpage.common :as f]
+    [biblecli.commands.staticpage.robots :as robots]
+    [biblecli.commands.staticpage.toc :as toc]
     [biblecli.main.utility :as u]
     [cljs.core.async :refer [chan put! <!]]
     [clojure.string :as s]
+    [common.bible.model :as model]
     [common.normalizer.core :refer [parse]]))
 
 (def node-fs (js/require "fs"))
@@ -63,6 +65,7 @@
           input  (or input (u/default-parser-input))
           m (parse parser input)
           all-chapters (chapter/chapter-list m)
+          all-books (book/book-list m)
           [err default-script] (<! (readfile (.join node-path output-dir "script.min.js")))]
       (if err
         [err nil]
@@ -70,12 +73,20 @@
           (let [default-script (s/replace default-script #"[\s\S]//# sourceMappingURL.*$" "")]
             (write! output-dir "robots.txt" (robots/page-content baseurl allowrobots))
             (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc/page-content m baseurl canonical default-script))
-            ; TODO: implement as part of book chapter index
-            ;(comment (dorun
-            ;  (->> m
-            ;       (map #(write!
-            ;               output-dir
-            ;               )))))
+
+            (dorun
+              (->>
+                all-books
+                (filter #(> (::model/chapterCount %) 1))
+                (map-indexed
+                  #(write!
+                     output-dir
+                     (f/book-url (::model/bookId %2))
+                     (book/page-content
+                       %2
+                       canonical
+                       default-script)))))
+
             (dorun
               (->>
                 all-chapters

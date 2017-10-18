@@ -17,19 +17,35 @@
             [biblecli.commands.staticpage.common :as f]
             [common.bible.model :as model]))
 
-; TODO: implement as part of book chapter index
-(defn page-content [book]
-  (let [chapters (::model/chapters book)
-        chapcount (count chapters)
-        id (::model/bookId book)]
-    (h/html {}
+(defn book-list [m]
+  (->> m
+       (map
+         (fn [book]
+           {::model/bookId       (::model/bookId book)
+            ::model/chapters     (::model/chapters book)
+            ::model/chapterCount (count (::model/chapters book))}))
+       (vec)))
+
+(defn page-content [{bookId       ::model/bookId
+                     chapters     ::model/chapters
+                     chapterCount ::model/chapterCount
+                     :as b}
+                    canonical
+                    default-script]
+  (let [bookName (f/book-name bookId)
+        bookUrl (f/book-url bookId)]
+    (h/html {:title          bookName
+             :desc           bookName
+             :canonical      canonical
+             :relurl         bookUrl
+             :default-script default-script}
             [:div.content.toc
              [:h1 "The King James Bible"]
              [:div.book
               [:div.back
-               [:h2 (f/book-name-nbsp id)]
+               [:h2 (f/book-name-nbsp bookId)]
                [:a {:href "."} "Table of Contents"]]
               [:ul.chapters.btncontainer
                (->> chapters
                     (map (fn [ch]
-                           [:li [:a {:href (f/chapter-url (::model/bookId book) (::model/chapterNum ch) chapcount)} (::model/chapterNum ch)]])))]]])))
+                           [:li [:a {:href (f/chapter-url bookId (::model/chapterNum ch) chapterCount)} (::model/chapterNum ch)]])))]]])))

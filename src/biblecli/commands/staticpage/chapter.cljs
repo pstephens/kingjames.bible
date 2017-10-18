@@ -32,12 +32,13 @@
     [:li (chapter-url prev-ch "left-arrow.svg" "Previous Chapter" "prev")]
     [:li (chapter-url next-ch "right-arrow.svg" "Next Chapter" "next")]))
 
-(defn menu-chapter [book-id ch]
+(defn menu-chapter [bookId
+                    {chapterNum ::model/chapterNum
+                     chapterCount ::model/chapterCount}]
   (list
-    [:li.book (h/text-button "." (f/book-name book-id))]
-    (if (> (::model/chapterCount ch) 1)
-      [:li.chap (h/text-button (str ".#" (f/book-elem-id book-id)) (::model/chapterNum ch))])))
-
+    [:li.book (h/text-button "." (f/book-name bookId))]
+    (if (> chapterCount 1)
+      [:li.chap (h/text-button (f/book-url bookId) chapterNum)])))
 
 (def ^:private beginbracket [:beginbracket "["])
 (def ^:private endbracket [:endbracket "]"])
