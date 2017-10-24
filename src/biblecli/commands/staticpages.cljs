@@ -77,15 +77,19 @@
             (dorun
               (->>
                 all-books
-                (filter #(> (::model/chapterCount %) 1))
-                (map-indexed
-                  #(write!
-                     output-dir
-                     (f/book-url (::model/bookId %2))
-                     (book/page-content
-                       %2
-                       canonical
-                       default-script)))))
+                (map-indexed (fn [index book] {:index index :book book}))
+                (filter #(> (get-in % [:book ::model/chapterCount]) 1))
+                (map
+                  (fn [{book :book index :index :as f}]
+                    (write!
+                      output-dir
+                      (f/book-url (::model/bookId book))
+                      (book/page-content
+                        book
+                        (book/prev-book all-books index)
+                        (book/next-book all-books index)
+                        canonical
+                        default-script))))))
 
             (dorun
               (->>

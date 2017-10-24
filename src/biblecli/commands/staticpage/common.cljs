@@ -14,7 +14,8 @@
 
 (ns biblecli.commands.staticpage.common
   (:require [clojure.string :as s]
-            [common.bible.model :as model]))
+            [common.bible.model :as model]
+            [biblecli.main.html :as h]))
 
 (def book-names {:Genesis        "Genesis"
                  :Exodus         "Exodus"
@@ -113,4 +114,36 @@
      chapterCount ::model/chapterCount}]
    (chapter-url bookId chapterNum chapterCount)))
 
+(defn chapter-button [ch img alt rel]
+  (let [data-png (s/replace img ".svg" ".png")]
+    (if ch
+      (h/img-button (chapter-url ch) img alt {:rel rel :data-png data-png})
+      (h/img-button "" img alt {:data-png data-png}))))
 
+(defn book-button [bookId img alt rel]
+  (let [data-png (s/replace img ".svg" ".png")]
+    (if bookId
+      (h/img-button (book-url bookId) img alt {:rel rel :data-png data-png})
+      (h/img-button "" img alt {:data-png data-png}))))
+
+(defn menu-home []
+  [:li (h/img-button "." "home.svg" "Home" {:data-png "home.png"})])
+
+(defn menu-chapter-arrows [prev-ch next-ch]
+  (list
+    [:li (chapter-button prev-ch "left-arrow.svg" "Previous Chapter" "prev")]
+    [:li (chapter-button next-ch "right-arrow.svg" "Next Chapter" "next")]))
+
+(defn menu-book-arrows [prev-book next-book]
+  (list
+    [:li (book-button prev-book "left-arrow.svg" "Previous Book" "prev")]
+    [:li (book-button next-book "right-arrow.svg" "Next Book" "next")]))
+
+(defn menu-chapter [bookId
+                    {chapterNum ::model/chapterNum
+                     chapterCount ::model/chapterCount}]
+  (if (> chapterCount 1)
+    [:li.chap (h/text-button (book-url bookId) chapterNum)]))
+
+(defn menu-book [bookId]
+  [:li.book (h/text-button "." (book-name bookId))])

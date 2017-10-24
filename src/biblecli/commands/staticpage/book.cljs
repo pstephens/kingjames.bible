@@ -26,10 +26,17 @@
             ::model/chapterCount (count (::model/chapters book))}))
        (vec)))
 
+(defn next-book [all-books i]
+  (::model/bookId (get all-books (inc i))))
+
+(defn prev-book [all-books i]
+  (::model/bookId (get all-books (dec i))))
+
 (defn page-content [{bookId       ::model/bookId
                      chapters     ::model/chapters
-                     chapterCount ::model/chapterCount
-                     :as b}
+                     chapterCount ::model/chapterCount}
+                    prev-book
+                    next-book
                     canonical
                     default-script]
   (let [bookName (f/book-name bookId)
@@ -39,13 +46,18 @@
              :canonical      canonical
              :relurl         bookUrl
              :default-script default-script}
-            [:div.content.toc
-             [:h1 "The King James Bible"]
-             [:div.book
-              [:div.back
-               [:h2 (f/book-name-nbsp bookId)]
-               [:a {:href "."} "Table of Contents"]]
-              [:ul.chapters.btncontainer
-               (->> chapters
-                    (map (fn [ch]
-                           [:li [:a {:href (f/chapter-url bookId (::model/chapterNum ch) chapterCount)} (::model/chapterNum ch)]])))]]])))
+            [:div.content.chapters
+             (h/menu
+               [:div.vert
+                [:ul.btncontainer (f/menu-home) (f/menu-book-arrows prev-book next-book)]
+                [:ul.btncontainer.bookref (f/menu-book bookId)]]
+               [:div.horz
+                [:ul.btncontainer.home (f/menu-home)]
+                [:ul.btncontainer (f/menu-book bookId)]
+                [:ul.btncontainer (f/menu-book-arrows prev-book next-book)]])
+             [:h1.book (f/book-name-nbsp bookId)]
+
+             [:ul.chapters.btncontainer
+              (->> chapters
+                   (map (fn [ch]
+                          [:li [:a {:href (f/chapter-url bookId (::model/chapterNum ch) chapterCount)} (::model/chapterNum ch)]])))]])))

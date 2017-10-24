@@ -18,28 +18,6 @@
             [clojure.string :as s]
             [common.bible.model :as model]))
 
-(defn chapter-url [ch img alt rel]
-  (let [data-png (s/replace img ".svg" ".png")]
-    (if ch
-      (h/img-button (f/chapter-url ch) img alt {:rel rel :data-png data-png})
-      (h/img-button "" img alt {:data-png data-png}))))
-
-(defn menu-home []
-  [:li (h/img-button "." "home.svg" "Home" {:data-png "home.png"})])
-
-(defn menu-arrows [prev-ch next-ch]
-  (list
-    [:li (chapter-url prev-ch "left-arrow.svg" "Previous Chapter" "prev")]
-    [:li (chapter-url next-ch "right-arrow.svg" "Next Chapter" "next")]))
-
-(defn menu-chapter [bookId
-                    {chapterNum ::model/chapterNum
-                     chapterCount ::model/chapterCount}]
-  (list
-    [:li.book (h/text-button "." (f/book-name bookId))]
-    (if (> chapterCount 1)
-      [:li.chap (h/text-button (f/book-url bookId) chapterNum)])))
-
 (def ^:private beginbracket [:beginbracket "["])
 (def ^:private endbracket [:endbracket "]"])
 (def ^:private whitespace [:whitespace " "])
@@ -155,13 +133,12 @@
           [:div.content.verses
            (h/menu
              [:div.vert
-              [:ul.btncontainer (menu-home) (menu-arrows prev-ch next-ch)]
-              [:ul.btncontainer.bookref (menu-chapter bookId ch)]]
+              [:ul.btncontainer (f/menu-home) (f/menu-chapter-arrows prev-ch next-ch)]
+              [:ul.btncontainer.bookref (f/menu-book bookId) (f/menu-chapter bookId ch)]]
              [:div.horz
-              [:ul.btncontainer.home (menu-home)]
-              [:ul.btncontainer (menu-chapter bookId ch)]
-              [:ul.btncontainer (menu-arrows prev-ch next-ch)]])
-           [:h1.chap
-            (f/chapter-name ch)]
+              [:ul.btncontainer.home (f/menu-home)]
+              [:ul.btncontainer (f/menu-book bookId) (f/menu-chapter bookId ch)]
+              [:ul.btncontainer (f/menu-chapter-arrows prev-ch next-ch)]])
+           [:h1.chap (f/chapter-name ch)]
            (map-indexed #(verse %1 ch %2) verses)
            [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl]]]))
