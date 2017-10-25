@@ -20,7 +20,7 @@
 (defn toc-book [{bookId ::model/bookId}]
     [:li [:a {:href (f/book-url bookId)} (f/book-name-nbsp bookId)]])
 
-(defn page-content [m baseurl canonical default-script]
+(defn page-content [m canonical default-script]
   (h/html {:hilighter      {:scrolltop true}
            :title          nil
            :desc           "Table of Contents"
@@ -45,6 +45,4 @@
             [:ul.books.btncontainer
              (->> m
                   (drop 39)
-                  (map toc-book))]]
-
-           [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl]]]))
+                  (map toc-book))]]]))

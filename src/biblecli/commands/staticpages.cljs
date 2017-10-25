@@ -72,7 +72,7 @@
         (do
           (let [default-script (s/replace default-script #"[\s\S]//# sourceMappingURL.*$" "")]
             (write! output-dir "robots.txt" (robots/page-content baseurl allowrobots))
-            (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc/page-content m baseurl canonical default-script))
+            (write! output-dir "7ce12f75-f371-4e85-a3e9-b7749a65f140.html" (toc/page-content m canonical default-script))
 
             (dorun
               (->>
@@ -80,7 +80,7 @@
                 (map-indexed (fn [index book] {:index index :book book}))
                 (filter #(> (get-in % [:book ::model/chapterCount]) 1))
                 (map
-                  (fn [{book :book index :index :as f}]
+                  (fn [{book :book index :index}]
                     (write!
                       output-dir
                       (f/book-url (::model/bookId book))
@@ -103,7 +103,6 @@
                        %2
                        (chapter/prev-chapter all-chapters %1)
                        (chapter/next-chapter all-chapters %1)
-                       baseurl
                        canonical
                        default-script))))
             [nil nil])))))))

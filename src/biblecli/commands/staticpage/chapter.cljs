@@ -121,7 +121,6 @@
     :as     ch}
    prev-ch
    next-ch
-   baseurl
    canonical
    default-script]
   (h/html {:hilighter      {:centeractive true}
@@ -140,5 +139,4 @@
               [:ul.btncontainer (f/menu-book bookId) (f/menu-chapter bookId ch)]
               [:ul.btncontainer (f/menu-chapter-arrows prev-ch next-ch)]])
            [:h1.chap (f/chapter-name ch)]
-           (map-indexed #(verse %1 ch %2) verses)
-           [:div.about [:a {:href "https://github.com/pstephens/kingjames.bible/blob/master/README.md"} "About " baseurl]]]))
+           (map-indexed #(verse %1 ch %2) verses)]))
