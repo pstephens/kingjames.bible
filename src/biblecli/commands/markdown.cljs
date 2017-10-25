@@ -17,7 +17,8 @@
   (:require
     [biblecli.main.html :as h]
     [cljs.core.async :refer [chan put! <!]]
-    [clojure.string :as string]))
+    [clojure.string :as string]
+    [biblecli.commands.staticpage.common :as f]))
 
 (def ^:private marked
   (let [marked (js/require "marked")]
@@ -77,7 +78,11 @@
               markup (marked markdown)
               markup (h/html (merge opts {:relurl name})
                              [:div.content
-                              (h/menu (h/img-button "." "home.svg" "Home"))
+                              (h/menu
+                                [:div.vert
+                                 [:ul.btncontainer (f/menu-home)]]
+                                [:div.horz
+                                 [:ul.btncontainer.home (f/menu-home)]])
                               markup])
               [err _] (<! (writefile output-path markup))]
           (if err
