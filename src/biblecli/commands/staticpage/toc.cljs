@@ -18,7 +18,7 @@
             [common.bible.model :as model]))
 
 (defn toc-book [{bookId ::model/bookId}]
-    [:li [:a {:href (f/book-url bookId)} (f/book-name-nbsp bookId)]])
+  [:li [:a {:href (f/book-url bookId)} (f/book-name-nbsp bookId)]])
 
 (defn page-content [m canonical default-script]
   (h/html {:hilighter      {:scrolltop true}
@@ -45,4 +45,9 @@
             [:ul.books.btncontainer
              (->> m
                   (drop 39)
-                  (map toc-book))]]]))
+                  (map toc-book))]
+
+            [:h2 "Miscellany"]
+            [:ul.btncontainer.misc
+             [:li (h/text-button "About" "About")]
+             [:li (h/text-button "Help" "Help")]]]]))

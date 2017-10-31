@@ -80,9 +80,15 @@
                              [:div.content
                               (h/menu
                                 [:div.vert
-                                 [:ul.btncontainer (f/menu-home)]]
+                                 [:ul.btncontainer (f/menu-home)]
+                                 [:ul.btncontainer.misc [:li (h/text-button "." "Read")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "About" "About")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "Help" "Help")]]]
                                 [:div.horz
-                                 [:ul.btncontainer.home (f/menu-home)]])
+                                 [:ul.btncontainer.home (f/menu-home)]
+                                 [:ul.btncontainer.misc [:li (h/text-button "." "Read")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "About" "About")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "Help" "Help")]]])
                               markup])
               [err _] (<! (writefile output-path markup))]
           (if err
