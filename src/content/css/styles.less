@@ -31,7 +31,7 @@ body {
   }
 }
 
-@media (max-width: @small) {
+@media (max-width: (@small - 1)) {
   .content {
     margin: 25px auto 15px auto;
     padding: 12px;
@@ -151,7 +151,7 @@ ul.btncontainer {
       line-height: 3.7ex;
       padding: 1px;
       background-color: rgba(0, 0, 0, 0.05);
-      border: 1px solid rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(0, 0, 0, 0.08);
       border-radius: 4px;
     }
   }
@@ -259,7 +259,7 @@ html.flexbox {
   }
 }
 
-@media (max-width: @large) {
+@media (max-width: (@large - 1)) {
   .menu {
     position: fixed;
     top: 0;
@@ -293,7 +293,7 @@ html.flexbox {
   }
 }
 
-@media (min-width: @small) and (max-width: @large) {
+@media (min-width: @small) and (max-width: (@large - 1)) {
   .menu2 {
     border: 1px solid #BBB;
     left: -@content-margin - 1;
@@ -301,7 +301,7 @@ html.flexbox {
   }
 }
 
-@media (max-width: @small) {
+@media (max-width: (@small - 1)) {
   .menu {
     width: 100%;
     right: 0;
