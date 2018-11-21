@@ -218,3 +218,5 @@
 * https://kingjames.bible/I-Corinthians-15#50,51
 * https://kingjames.bible/I-Corinthians-15#54,55
 * https://kingjames.bible/I-Corinthians-15#58
+* https://kingjames.bible/Jude-1#22,23
+* https://kingjames.bible/Jude-1#24,25
