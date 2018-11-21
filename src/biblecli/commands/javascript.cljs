@@ -23,7 +23,7 @@
 
 (defn write! [dir filename content]
   (let [filePath (.join node-path dir filename)
-        buff (js/Buffer. content "utf8")
+        buff (.from js/Buffer content "utf8")
         ch (chan)
         cb (fn [err res]
              (put! ch [err res]))]

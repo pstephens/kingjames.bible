@@ -14,7 +14,6 @@
 
 (ns common.asset.server
   (:require
-    [clojure.string :as string]
     [goog.object]))
 
 (def DEFAULT_PORT 7490)
@@ -74,7 +73,9 @@
     (recur @el)))
 
 (defn process-request [resources req res]
-  (let [url (goog.object/get req "url")
+  (let [url (goog.object/get req "url")]
+    (println "Processing request " url)
+    (let [
         resource
         (->> resources
           (map #((resolve-element %) url))
@@ -83,7 +84,7 @@
           (first))]
     (if (some? resource)
       (process-resource resource req res)
-      (process-not-found req res))))
+      (process-not-found req res)))))
 
 (defn listen
   ([resources]

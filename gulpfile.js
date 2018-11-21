@@ -8,7 +8,7 @@ const less = require('less');
 const mkdirp = require('mkdirp');
 const os = require('os');
 const path = require('path');
-const phantom = require('phantomjs2');
+const puppeteer = require('puppeteer');
 const uglify = require('gulp-uglify');
 
 const config = (function parse_commandline() {
@@ -129,35 +129,52 @@ gulp.task('bible_resources',
 
 gulp.task('run_node_tests', biblecli_task('unittest'));
 
-gulp.task('run_phantom_tests', function server() {
+gulp.task('run_browser_tests', async function server() {
     // launch the web server
     const server = biblecli('serve');
-
     const stopWebServer = () => {
         console.log('Stopping the web test server...');
         server.proc.kill();
     };
 
-    const success = value => {
-        stopWebServer();
-        return value;
-    };
+    try {
+        const browser = await puppeteer.launch();
+        try {
+            const page = await browser.newPage();
+            const completedPromise = new Promise((resolve, reject) => {
+                page.on("console", msg => {
+                    const exitCode = /^~~EXIT\((\d+)\)~~$/.exec(msg.text());
+                    if(exitCode) {
+                        const code = parseInt(exitCode[1]);
+                        if(code === 0) {
+                            resolve();
+                        } else {
+                            reject(`Failed integration test suite with exit code ${code}`);
+                        }
+                    }
+                    else {
+                        console.log(`browser: ${msg.text()}`);
+                    }
+                });
+            });
 
-    const reject = reason => {
+            await page.goto('http://localhost:7490/phantomtest.html');
+            await completedPromise;
+        }
+        finally {
+            await browser.close();
+        }
+    }
+    finally {
         stopWebServer();
-        return Promise.reject(reason);
-    };
-
-    // launch phantom.js
-    return spawn('phantom', phantom.path, ['phantomtest.js', 'http://localhost:7490/phantomtest.html']).promise
-        .then(success, reject);
+    }
 });
 
 gulp.task('run_tests',
     gulp.series(
         'run_node_tests',
         'bible_resources',
-        'run_phantom_tests'));
+        'run_browser_tests'));
 
 gulp.task('watch_tests', function watch_tests() {
     return gulp.watch("out/dbg/last-compiled.txt",
@@ -208,7 +225,7 @@ gulp.task('copy_svg', copy_task('artwork/*.svg', build_dir));
 
 gulp.task('copy_png', copy_task('artwork/*.png', build_dir));
 
-gulp.task('copy_favicon', copy_task('artwork/favicon.ico', build_dir))
+gulp.task('copy_favicon', copy_task('artwork/favicon.ico', build_dir));
 
 less.logger.addListener({
     info: msg => console.log("less: " + msg),

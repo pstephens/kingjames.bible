@@ -14,5 +14,6 @@
 *.sublime-workspace
 *.log
 .idea
+*.iml
 
 verse-list.json

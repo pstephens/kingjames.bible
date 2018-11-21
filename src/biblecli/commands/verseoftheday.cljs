@@ -224,7 +224,7 @@ base-url
 
 (defn write! [dir filename content]
   (let [filepath (.join node-path dir filename)
-        buff (js/Buffer. content "utf8")]
+        buff (.from js/Buffer content "utf8")]
     (.writeFileSync node-fs filepath buff)))
 
 (defn readlines [filepath]
