@@ -44,7 +44,11 @@
       (is (= "The grace of our Lord Jesus Christ [be] with you all. Amen."
         (get-in m [65 :chapters 21 :verses 20])) "verse content Rev 22:21")
       (is (= "To God only wise, [be] glory through Jesus Christ for ever. Amen."
-        (get-in m [44 :chapters 15 :verses 26]))))
+        (get-in m [44 :chapters 15 :verses 26])))
+      (is (= "Blessed [are] the undefiled in the way, who walk in the law of the LORD."
+        (get-in m [18 :chapters 118 :verses 0])) "verse content Ps 119:1")
+      (is (= "And upon her forehead [was] a name written, MYSTERY, BABYLON THE GREAT, THE MOTHER OF HARLOTS AND ABOMINATIONS OF THE EARTH."
+        (get-in m [65 :chapters 16 :verses 4])) "verse content Rev 17:5"))
     (testing "Verse Subtitle"
       (is (= false (get-in m [0 :chapters 0 :subtitle])) "subtitle? Gen 1")
       (is (= "To the chief Musician, A Psalm of David."
