@@ -15,12 +15,12 @@
 (ns biblecli.commands.bucketsync
   (:require-macros [cljs.core.async.macros :refer [go go-loop]])
   (:require [cljs.core.async :refer [to-chan chan put! tap mult <! buffer onto-chan] :as async]
-            [cljs.nodejs :refer [require process]]
+            [cljs.nodejs :refer [process]]
             [clojure.string :as s]))
 
-(def AWS (require "aws-sdk"))
-(def fs (require "fs"))
-(def path (require "path"))
+(def AWS (js/require "aws-sdk"))
+(def fs (js/require "fs"))
+(def path (js/require "path"))
 
 (defn readdir [dir]
   (let [chan (chan)
@@ -171,7 +171,7 @@
     :else nil))
 
 (defn calc-md5-digest [buffer]
-  (let [crypto (require "crypto")
+  (let [crypto (js/require "crypto")
         hash (.createHash crypto "md5")]
     (.update hash buffer)
     (.digest hash)))

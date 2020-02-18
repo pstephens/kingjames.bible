@@ -16,13 +16,12 @@
   (:require-macros [hiccups.core :refer [html]])
   (:require
     [biblecli.main.utility :as u]
-    [cljs.nodejs :refer [require]]
     [clojure.string :as s]
     [common.normalizer.core :refer [parse]]
     [hiccups.runtime]))
 
-(def node-fs (require "fs"))
-(def node-path (require "path"))
+(def node-fs (js/require "fs"))
+(def node-path (js/require "path"))
 
 (defn style []
 "body {

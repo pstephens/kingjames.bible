@@ -16,12 +16,13 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require
     [cljs.core.async :refer [<!]]
-    [cljs.nodejs :refer [process require enable-util-print!]]
+    [cljs.nodejs :refer [process enable-util-print!]]
     [biblecli.commands.bucketsync]
     [biblecli.commands.normalize]
     [biblecli.commands.prepare]
     [biblecli.commands.serve]
     [biblecli.commands.staticpages]
+    [biblecli.commands.unittest]
     [biblecli.commands.verseoftheday]
     [biblecli.main.utility :as u]
     [clojure.string :as s]))
@@ -77,6 +78,7 @@
    "prepare"       #'biblecli.commands.prepare/prepare
    "serve"         #'biblecli.commands.serve/serve
    "static"        #'biblecli.commands.staticpages/static
+   "unittest"      #'biblecli.commands.unittest/runtests
    "verseoftheday" #'biblecli.commands.verseoftheday/verseoftheday})
 
 (defn parse-commandline [args opts]
@@ -84,7 +86,7 @@
         args (if (nil? args)
                #js[]
                (clj->js args))
-        minimist (require "minimist")
+        minimist (js/require "minimist")
         processed-args (minimist args opts)]
     (js->clj processed-args :keywordize-keys true)))
 
