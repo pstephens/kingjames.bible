@@ -90,7 +90,7 @@
   (->
     (str content)
     (string/replace
-      #"ALEPH. |BETH. |GIMEL. |DALETH. |HE. |VAU. |ZAIN. |CHETH. |TETH. |JOD. |CAPH. |LAMED. |MEM. |NUN. |SAMECH. |AIN. |PE. |TZADDI. |KOPH. |RESH. |SCHIN. |TAU. "
+      #"^(ALEPH\. |BETH\. |GIMEL\. |DALETH\. |HE\. |VAU\. |ZAIN\. |CHETH\. |TETH\. |JOD\. |CAPH\. |LAMED\. |MEM\. |NUN\. |SAMECH\. |AIN\. |PE\. |TZADDI\. |KOPH\. |RESH\. |SCHIN\. |TAU\. )"
       "")
     (string/trim)))
 

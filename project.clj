@@ -5,28 +5,28 @@
             :url "http://www.apache.org/licenses/LICENSE-2.0"
             :distribution :repo}
 
-  :dependencies [[org.clojure/clojure "1.9.0"]
-                 [org.clojure/clojurescript "1.10.439"
+  :dependencies [[org.clojure/clojure "1.10.1"]
+                 [org.clojure/clojurescript "1.10.597"
                   :exclusion [org.clojure/data.json]]
-                 [org.clojure/core.async "0.4.474"]
-                 [org.clojure/data.json "0.2.6"]
+                 [org.clojure/core.async "0.7.559"]
+                 [org.clojure/data.json "0.2.7"]
                  [com.cognitect/transit-cljs "0.8.256"]
                  [hiccups "0.3.0"]]
 
-  :npm {:dependencies [[aws-sdk "2.358.0"]
-                       [del "3.0.0"]
-                       [gulp "next"]
-                       [gulp-uglify "3.0.1"]
-                       [jasmine "3.3.0"]
-                       [less "3.8.1"]
-                       [lodash "4.17.11"]
-                       [marked "0.5.1"]
+  :npm {:dependencies [[aws-sdk "2.619.0"]
+                       [del "5.1.0"]
+                       [gulp "4.0.2"]
+                       [gulp-uglify "3.0.2"]
+                       [jasmine "3.5.0"]
+                       [less "3.11.1"]
+                       [lodash "4.17.15"]
+                       [marked "0.8.0"]
                        [minimist "1.2.0"]
-                       [mkdirp "0.5.1"]
-                       [modernizr "3.6.0"]
-                       [puppeteer "1.10.0"]
-                       [source-map-support "0.5.9"]
-                       [uglify-js "3.4.9"]]}
+                       [mkdirp "1.0.3"]
+                       [modernizr "3.9.0"]
+                       [puppeteer "2.1.1"]
+                       [source-map-support "0.5.16"]
+                       [uglify-js "3.7.7"]]}
 
   :jvm-opts ^:replace ["-Xmx2g" "-server"]
   :plugins [[lein-npm "0.6.2"]

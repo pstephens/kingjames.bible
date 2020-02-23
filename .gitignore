@@ -5,6 +5,7 @@
 /target/
 /node_modules/
 *.jar
+*.orig
 .lein-deps-sum
 .lein-repl-history
 .lein-plugins/

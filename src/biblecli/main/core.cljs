@@ -25,6 +25,7 @@
     [biblecli.commands.serve]
     [biblecli.commands.sitemap]
     [biblecli.commands.staticpages]
+    [biblecli.commands.unittest]
     [biblecli.commands.verseoftheday]
     [biblecli.commands.unittest]
     [biblecli.main.utility :as u]
@@ -84,8 +85,8 @@
    "serve"         #'biblecli.commands.serve/serve
    "sitemap"       #'biblecli.commands.sitemap/sitemap
    "static"        #'biblecli.commands.staticpages/static
-   "verseoftheday" #'biblecli.commands.verseoftheday/verseoftheday
-   "unittest"      #'biblecli.commands.unittest/runtests})
+   "unittest"      #'biblecli.commands.unittest/runtests
+   "verseoftheday" #'biblecli.commands.verseoftheday/verseoftheday})
 
 (defn parse-commandline [args opts]
   (let [opts (if opts opts #js{})

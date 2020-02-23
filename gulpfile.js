@@ -104,8 +104,8 @@ function biblecli_task(cmd, args) {
 }
 
 function mkdir_task(dir) {
-    return function mkdir_task(cb) {
-        mkdirp(dir, cb);
+    return function mkdir_task() {
+        return mkdirp(dir);
     }
 }
 
