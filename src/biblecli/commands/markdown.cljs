@@ -82,13 +82,17 @@
                                 [:div.vert
                                  [:ul.btncontainer (f/menu-home)]
                                  [:ul.btncontainer.misc [:li (h/text-button "." "Read")]]
-                                 [:ul.btncontainer.misc [:li (h/text-button "About" "About")]]
-                                 [:ul.btncontainer.misc [:li (h/text-button "Help" "Help")]]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "about" "About")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "authority" "Authority")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "salvation" "Salvation")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "profit" "Profit")]]]
                                 [:div.horz
                                  [:ul.btncontainer.home (f/menu-home)]
                                  [:ul.btncontainer.misc [:li (h/text-button "." "Read")]]
-                                 [:ul.btncontainer.misc [:li (h/text-button "About" "About")]]
-                                 [:ul.btncontainer.misc [:li (h/text-button "Help" "Help")]]])
+                                 [:ul.btncontainer.misc [:li (h/text-button "about" "About")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "authority" "Authority")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "salvation" "Salvation")]]
+                                 [:ul.btncontainer.misc [:li (h/text-button "profit" "Profit")]]])
                               markup])
               [err _] (<! (writefile output-path markup))]
           (if err

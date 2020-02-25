@@ -49,5 +49,7 @@
 
             [:h2 "Miscellany"]
             [:ul.btncontainer.misc
-             [:li (h/text-button "About" "About")]
-             [:li (h/text-button "Help" "Help")]]]]))
+             [:li (h/text-button "about" "About")]
+             [:li (h/text-button "authority" "Authority")]
+             [:li (h/text-button "salvation" "Salvation")]
+             [:li (h/text-button "profit" "Profit")]]]]))

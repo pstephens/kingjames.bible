@@ -158,7 +158,7 @@ gulp.task('run_browser_tests', async function server() {
                 });
             });
 
-            await page.goto('http://localhost:7490/phantomtest.html');
+            await page.goto('http://localhost:7490/browsertest.html');
             await completedPromise;
         }
         finally {

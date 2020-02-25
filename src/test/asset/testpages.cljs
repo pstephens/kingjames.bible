@@ -13,13 +13,13 @@
 ;;;;   limitations under the License.
 
 (ns test.asset.testpages
-  (:require-macros [hiccups.core :as hiccups :refer [html]])
+  (:require-macros [hiccups.core :refer [html]])
   (:require
     [common.bible.resource]
     [goog.object :as obj]
-    [hiccups.runtime :as hiccupsrt]))
+    [hiccups.runtime]))
 
-(defn phantomtest-content [bible-meta-data]
+(defn browser-test-content [bible-meta-data]
   (html
     [:html
       [:head
@@ -30,15 +30,15 @@
         [:script {:type "text/javascript"}
           "goog.require(\"bible.io\");"]
         [:script {:type "text/javascript"}
-          (common.bible.resource.resource-map bible-meta-data)]
+          (common.bible.resource/resource-map bible-meta-data)]
         [:script {:type "text/javascript"}
           "goog.require(\"test.browser.core\");"]]]))
 
-(defn phantomtest [bible-meta-data]
-  (let [path "/phantomtest.html"]
+(defn browser-test [bible-meta-data]
+  (let [path "/browsertest.html"]
     [path
      (delay
-       (let [buff (.from js/Buffer (phantomtest-content bible-meta-data) "utf8")]
+       (let [buff (.from js/Buffer (browser-test-content bible-meta-data) "utf8")]
          {:path    path
           :content buff
           :headers {"Cache-Control"  "max-age=300, public"
@@ -48,5 +48,5 @@
 
 (defn resources [bible-meta-data]
   (->>
-    [(phantomtest bible-meta-data)]
+    [(browser-test bible-meta-data)]
     (reduce conj {})))

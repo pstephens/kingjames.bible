@@ -1,3 +1,3 @@
 var fs = require('fs');
 
-fs.writeFileSync(process.argv[2], new Buffer(''));
+fs.writeFileSync(process.argv[2], Buffer.from(''));
