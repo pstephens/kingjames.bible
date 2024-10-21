@@ -11,9 +11,15 @@
 
 .nrepl-port
 /.cljs_node_repl/
+.lsp/
+.clj-kondo/
 *.sublime-workspace
 *.log
 .idea
 *.orig
+/.vscode/
 
 verse-list.json
+
+target/
+coverage/

@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/kingjames-bible-core",
+    "crates/kingjames-bible-normalizer",
+    "crates/kingjames-bible-parser",
+    "crates/xtask",
+]
