@@ -13,7 +13,25 @@
  *    limitations under the License.
  */
 
-fn main() {
+use crate::error::{wrap_error, Error};
+use std::process::Command;
 
+pub fn run_cargo(cmd: &mut Command) -> Result<(), Error> {
+    let mut child = cmd
+        .spawn()
+        .map_err(|e| wrap_error("Failed to start cargo process", e))?;
+
+    let exit_status = child
+        .wait()
+        .map_err(|e| wrap_error("Failed to wait for cargo process", e))?;
+
+    if !exit_status.success() {
+        return Err(format!(
+            "`cargo` process failed with exit code {:?}",
+            exit_status.code()
+        )
+        .into());
+    }
+
+    Ok(())
 }
-
