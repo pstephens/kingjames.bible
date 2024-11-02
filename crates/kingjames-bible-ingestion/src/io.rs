@@ -13,6 +13,11 @@
  *    limitations under the License.
  */
 
-pub mod error;
-pub mod model;
-pub mod staggs;
+use crate::model::Bible;
+use std::{fs::File, io::BufReader, path::Path};
+
+pub fn read_from_file(path: &Path) -> Bible {
+    let file = File::open(path).unwrap();
+    let reader = BufReader::new(file);
+    serde_json::from_reader(reader).unwrap()
+}

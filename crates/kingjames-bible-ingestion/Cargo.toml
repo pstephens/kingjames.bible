@@ -13,12 +13,18 @@
 ####   limitations under the License.
 
 [package]
-name = "kingjames-bible-parser"
+name = "kingjames-bible-ingestion"
 version = "0.1.0"
 edition = "2021"
+description = "Utilities for parsing, normalizing, and analyzing the King James bible text"
+homepage = "https://github.com/pstephens/kingjames.bible"
+repository = "https://github.com/pstephens/kingjames.bible.git"
+license = "Apache-2.0"
+keywords = ["bible"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 regex = "1"
 serde = { version = "1", features = [ "derive" ] }
+serde_json = "1"

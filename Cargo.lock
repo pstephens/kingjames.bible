@@ -129,20 +129,21 @@ name = "kingjames-bible-core"
 version = "0.1.0"
 
 [[package]]
-name = "kingjames-bible-normalizer"
-version = "0.1.0"
-dependencies = [
- "clap",
- "kingjames-bible-parser",
- "serde_json",
-]
-
-[[package]]
-name = "kingjames-bible-parser"
+name = "kingjames-bible-ingestion"
 version = "0.1.0"
 dependencies = [
  "regex",
  "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "kingjames-bible-ingestion-cli"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "kingjames-bible-ingestion",
+ "serde_json",
 ]
 
 [[package]]

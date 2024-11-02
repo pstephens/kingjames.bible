@@ -16,6 +16,10 @@
 name = "kingjames-bible-core"
 version = "0.1.0"
 edition = "2021"
+homepage = "https://github.com/pstephens/kingjames.bible"
+repository = "https://github.com/pstephens/kingjames.bible.git"
+license = "Apache-2.0"
+keywords = ["bible"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
